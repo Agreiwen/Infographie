@@ -1,8 +1,9 @@
 #include "tgaimage.h"
-#include "point.h"
+#include "Point.h"
 #include "matrice.h"
 #include <iostream>
 #include <vector>
+#include <limits>
 #include <sstream>
 #include <cmath>
 #include <algorithm>
@@ -66,7 +67,7 @@ void intro() {
 
 vector<vector<double> > lectureSommets(string nomFichier) {
 	cout << "Lecture des sommets... ";
-	ifstream fichier(nomFichier, ios::in);  // on ouvre en lecture
+	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
 
 	if (fichier)  // si l'ouverture a fonctionné
 	{
@@ -125,7 +126,7 @@ void dessinePoint(vector<vector<double> > &vect) {
 
 vector<vector<double> > lectureTriangles(string nomFichier) {
 	cout << "Lecture des triangles... ";
-	ifstream fichier(nomFichier, ios::in);  // on ouvre en lecture
+	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
 
 	if (fichier)  // si l'ouverture a fonctionné
 	{
@@ -535,7 +536,7 @@ void faceLumiere(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 
 vector<vector<double> > lectureTexturesF(string nomFichier) {
 	cout << "Lecture des textures f (partie 1)... ";
-	ifstream fichier(nomFichier, ios::in);  // on ouvre en lecture
+	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
 
 	if (fichier)  // si l'ouverture a fonctionné
 	{
@@ -593,7 +594,7 @@ vector<vector<double> > lectureTexturesF(string nomFichier) {
 
 vector<vector<double> > lectureTexturesVt(string nomFichier) {
 	cout << "Lecture des textures vt (partie 2)... ";
-	ifstream fichier(nomFichier, ios::in);  // on ouvre en lecture
+	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
 
 	if (fichier)  // si l'ouverture a fonctionné
 	{
@@ -661,7 +662,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		}
 	}
 	
-	for (unsigned int i = 0; i < 2; ++i) {
+	for (unsigned int i = 0; i < vectTriangles.size(); ++i) {
 		ligne1 = vectTriangles[i][0];
 		Ax = vectPoints[ligne1 - 1][0] + tailleImageSurDeux;
 		Ay = vectPoints[ligne1 - 1][1] + tailleImageSurDeux;
@@ -693,10 +694,10 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		cout << "vtA : " << vtAx << "|" << vtAy << endl;
 		cout << "vtB : " << vtBx << "|" << vtBy << endl;
 		cout << "vtC : " << vtCx << "|" << vtCy << endl;
-		test.set(Ax, Ay, colorA);
+/*		test.set(Ax, Ay, colorA);
 		test.set(Bx, By, colorB);
 		test.set(Cx, Cy, colorC);
-
+*/
 
 		maxAbs = maxTrois(Ax, Bx, Cx);
 		minAbs = minTrois(Ax, Bx, Cx);
@@ -722,8 +723,8 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 					}
 					else {
 						zbuffer[Px][Py] = Pz;
-						pix_x = (vtAx*u + vtBx*v + vtCx*w) * 1024;
-						pix_y = (vtAy*u + vtBy*v + vtCy*w) * 1024;
+						pix_x = (vtAx*w + vtBx*u + vtCx*v) * 1024;
+						pix_y = (vtAy*w + vtBy*u + vtCy*v) * 1024;
 						colorPix = africanDiffuse.get(pix_x, pix_y);
 						test.set(Px, Py, colorPix);
 					}
