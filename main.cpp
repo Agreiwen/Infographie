@@ -1,9 +1,8 @@
 #include "tgaimage.h"
-#include "Point.h"
+#include "point.h"
 #include "matrice.h"
 #include <iostream>
 #include <vector>
-#include <limits>
 #include <sstream>
 #include <cmath>
 #include <algorithm>
@@ -67,7 +66,7 @@ void intro() {
 
 vector<vector<double> > lectureSommets(string nomFichier) {
 	cout << "Lecture des sommets... ";
-	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
+	ifstream fichier(nomFichier, ios::in);  // on ouvre en lecture
 
 	if (fichier)  // si l'ouverture a fonctionné
 	{
@@ -126,7 +125,7 @@ void dessinePoint(vector<vector<double> > &vect) {
 
 vector<vector<double> > lectureTriangles(string nomFichier) {
 	cout << "Lecture des triangles... ";
-	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
+	ifstream fichier(nomFichier, ios::in);  // on ouvre en lecture
 
 	if (fichier)  // si l'ouverture a fonctionné
 	{
@@ -536,7 +535,7 @@ void faceLumiere(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 
 vector<vector<double> > lectureTexturesF(string nomFichier) {
 	cout << "Lecture des textures f (partie 1)... ";
-	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
+	ifstream fichier(nomFichier, ios::in);  // on ouvre en lecture
 
 	if (fichier)  // si l'ouverture a fonctionné
 	{
@@ -569,13 +568,9 @@ vector<vector<double> > lectureTexturesF(string nomFichier) {
 				int posSlash1Texte2 = texte2.find('/', 0);
 				int posSlash1Texte3 = texte3.find('/', 0);
 
-				int posSlash2Texte1 = texte1.find('/', posSlash1Texte1+1);
-				int posSlash2Texte2 = texte2.find('/', posSlash1Texte2+1);
-				int posSlash2Texte3 = texte3.find('/', posSlash1Texte3+1);
-
-				double partie1 = atof(texte1.substr(posSlash1Texte1+1, posSlash2Texte1 - 1 - posSlash1Texte1).c_str());
-				double partie2 = atof(texte2.substr(posSlash1Texte2+1, posSlash2Texte2 - 1 - posSlash1Texte2).c_str());
-				double partie3 = atof(texte3.substr(posSlash1Texte3+1, posSlash2Texte3 - 1 - posSlash1Texte3).c_str());
+				double partie1 = atof(texte1.substr(posSlash1Texte1+1, posSlash1Texte1).c_str());
+				double partie2 = atof(texte2.substr(posSlash1Texte2+1, posSlash1Texte2).c_str());
+				double partie3 = atof(texte3.substr(posSlash1Texte3+1, posSlash1Texte3).c_str());
 
 				//cout << partie1 << " | " << partie2 << " | " << partie3 << endl;
 
@@ -598,7 +593,7 @@ vector<vector<double> > lectureTexturesF(string nomFichier) {
 
 vector<vector<double> > lectureTexturesVt(string nomFichier) {
 	cout << "Lecture des textures vt (partie 2)... ";
-	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
+	ifstream fichier(nomFichier, ios::in);  // on ouvre en lecture
 
 	if (fichier)  // si l'ouverture a fonctionné
 	{
@@ -666,7 +661,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		}
 	}
 	
-	for (unsigned int i = 0; i < vectTriangles.size(); ++i) {
+	for (unsigned int i = 0; i < 2; ++i) {
 		ligne1 = vectTriangles[i][0];
 		Ax = vectPoints[ligne1 - 1][0] + tailleImageSurDeux;
 		Ay = vectPoints[ligne1 - 1][1] + tailleImageSurDeux;
@@ -698,10 +693,10 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		cout << "vtA : " << vtAx << "|" << vtAy << endl;
 		cout << "vtB : " << vtBx << "|" << vtBy << endl;
 		cout << "vtC : " << vtCx << "|" << vtCy << endl;
-/*		test.set(Ax, Ay, colorA);
+		test.set(Ax, Ay, colorA);
 		test.set(Bx, By, colorB);
 		test.set(Cx, Cy, colorC);
-*/
+
 
 		maxAbs = maxTrois(Ax, Bx, Cx);
 		minAbs = minTrois(Ax, Bx, Cx);
@@ -727,8 +722,8 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 					}
 					else {
 						zbuffer[Px][Py] = Pz;
-						pix_x = (vtAx*w + vtBx*u + vtCx*v) * 1024;
-						pix_y = (vtAy*w + vtBy*u + vtCy*v) * 1024;
+						pix_x = (vtAx*u + vtBx*v + vtCx*w) * 1024;
+						pix_y = (vtAy*u + vtBy*v + vtCy*w) * 1024;
 						colorPix = africanDiffuse.get(pix_x, pix_y);
 						test.set(Px, Py, colorPix);
 					}
