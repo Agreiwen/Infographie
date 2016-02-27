@@ -48,7 +48,9 @@ bool appartientTriangle(double Px, double Py, double Ax, double Ay, double Bx, d
 }
 
 
+/*
 int main(int argc, char** argv) {
 	appartientTriangle(5, 3, 3, 5, 8, 4, 4, 1);
 	return 0;
 }
+*/
