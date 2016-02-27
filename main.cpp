@@ -569,9 +569,13 @@ vector<vector<double> > lectureTexturesF(string nomFichier) {
 				int posSlash1Texte2 = texte2.find('/', 0);
 				int posSlash1Texte3 = texte3.find('/', 0);
 
-				double partie1 = atof(texte1.substr(posSlash1Texte1+1, posSlash1Texte1).c_str());
-				double partie2 = atof(texte2.substr(posSlash1Texte2+1, posSlash1Texte2).c_str());
-				double partie3 = atof(texte3.substr(posSlash1Texte3+1, posSlash1Texte3).c_str());
+				int posSlash2Texte1 = texte1.find('/', posSlash1Texte1+1);
+				int posSlash2Texte2 = texte2.find('/', posSlash1Texte2+1);
+				int posSlash2Texte3 = texte3.find('/', posSlash1Texte3+1);
+
+				double partie1 = atof(texte1.substr(posSlash1Texte1+1, posSlash2Texte1 - 1 - posSlash1Texte1).c_str());
+				double partie2 = atof(texte2.substr(posSlash1Texte2+1, posSlash2Texte2 - 1 - posSlash1Texte2).c_str());
+				double partie3 = atof(texte3.substr(posSlash1Texte3+1, posSlash2Texte3 - 1 - posSlash1Texte3).c_str());
 
 				//cout << partie1 << " | " << partie2 << " | " << partie3 << endl;
 
