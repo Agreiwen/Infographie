@@ -16,7 +16,7 @@ const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
 const TGAColor blue = TGAColor(159, 121, 238, 255);
 const TGAColor purple = TGAColor(155, 48, 255, 255);
-int zbuffer[1000][1000];
+double zbuffer[1000][1000];
 
 
 /* Premiere partie : Lecture du fichier OBJ puis création du TGA (affichage du portait en nuage de point et fil de fer */
@@ -112,11 +112,11 @@ vector<vector<double> > lectureSommets(string nomFichier) {
 void dessinePoint(vector<vector<double> > &vect) {
 	cout << "Creation de l'image nuage de point ... ";
 	int tailleImage = 1000;
-	int moitierTailleImage = tailleImage / 2;
+	int tailleImageSurDeux = tailleImage / 2;
 	TGAImage image(tailleImage, tailleImage, TGAImage::RGB);
 	for (unsigned int i = 0; i < vect.size(); ++i) {
-		double x = vect[i][0] + moitierTailleImage;
-		double y = vect[i][1] + moitierTailleImage;
+		double x = vect[i][0] * tailleImageSurDeux + tailleImageSurDeux;
+		double y = vect[i][1] * tailleImageSurDeux + tailleImageSurDeux;
 		image.set(x, y, white);
 	}
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
@@ -184,23 +184,18 @@ void dessineFilDeFer(vector<vector<double> > &vectPoints, vector<vector<double> 
 	int tailleImageSurDeux = tailleImage / 2;
 	int tailleImagesurQuatre = tailleImage / 4;
 	TGAImage image(tailleImage, tailleImage, TGAImage::RGB);
-	for (unsigned int i = 0; i < vectPoints.size(); ++i) {
-		double x = vectPoints[i][0] + tailleImagesurQuatre;
-		double y = vectPoints[i][1] + tailleImagesurQuatre;
-		image.set(x, y, purple);
-	}
 	for (unsigned int i = 0; i < vectTriangles.size(); ++i) {
 		int ligne1 = vectTriangles[i][0];
-		int x1 = vectPoints[ligne1 - 1][0] + tailleImageSurDeux;
-		int y1 = vectPoints[ligne1 - 1][1] + tailleImageSurDeux;
+		int x1 = vectPoints[ligne1 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		int y1 = vectPoints[ligne1 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
 
 		int ligne2 = vectTriangles[i][1];
-		int x2 = vectPoints[ligne2 - 1][0] + tailleImageSurDeux;
-		int y2 = vectPoints[ligne2 - 1][1] + tailleImageSurDeux;
+		int x2 = vectPoints[ligne2 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		int y2 = vectPoints[ligne2 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
 
 		int ligne3 = vectTriangles[i][2];
-		int x3 = vectPoints[ligne3 - 1][0] + tailleImageSurDeux;
-		int y3 = vectPoints[ligne3 - 1][1] + tailleImageSurDeux;
+		int x3 = vectPoints[ligne3 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		int y3 = vectPoints[ligne3 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
 
 		/*cout << "\n" << ligne1 << " | " << ligne2 << " | " << ligne3 << endl;
 		cout << "X1 = " << x1 << " Y1 = " << y1 << endl;
@@ -308,16 +303,16 @@ void dessineTriangle(vector<vector<double> > &vectPoints, vector<vector<double> 
 
 	for (unsigned int i = 0; i < vectTriangles.size(); ++i) {
 		ligne1 = vectTriangles[i][0];
-		x1 = vectPoints[ligne1 - 1][0] + tailleImageSurDeux;
-		y1 = vectPoints[ligne1 - 1][1] + tailleImageSurDeux;
+		x1 = vectPoints[ligne1 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		y1 = vectPoints[ligne1 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
 
 		ligne2 = vectTriangles[i][1];
-		x2 = vectPoints[ligne2 - 1][0] + tailleImageSurDeux;
-		y2 = vectPoints[ligne2 - 1][1] + tailleImageSurDeux;
+		x2 = vectPoints[ligne2 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		y2 = vectPoints[ligne2 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
 
 		ligne3 = vectTriangles[i][2];
-		x3 = vectPoints[ligne3 - 1][0] + tailleImageSurDeux;
-		y3 = vectPoints[ligne3 - 1][1] + tailleImageSurDeux;
+		x3 = vectPoints[ligne3 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		y3 = vectPoints[ligne3 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
 
 		maxAbs = maxTrois(x1, x2, x3);
 		minAbs = minTrois(x1, x2, x3);
@@ -408,20 +403,20 @@ void lineSweeping(vector<vector<double> > &vectPoints, vector<vector<double> > &
 
 	for (unsigned int i = 0; i < vectTriangles.size(); ++i) {
 		int ligne1 = vectTriangles[i][0];
-		int x1 = vectPoints[ligne1 - 1][0] + tailleImageSurDeux;
-		int y1 = vectPoints[ligne1 - 1][1] + tailleImageSurDeux;
+		int x1 = vectPoints[ligne1 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		int y1 = vectPoints[ligne1 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
 		A.setX(x1);
 		A.setY(y1);
 
 		int ligne2 = vectTriangles[i][1];
-		int x2 = vectPoints[ligne2 - 1][0] + tailleImageSurDeux;
-		int y2 = vectPoints[ligne2 - 1][1] + tailleImageSurDeux;
+		int x2 = vectPoints[ligne2 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		int y2 = vectPoints[ligne2 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
 		B.setX(x2);
 		B.setY(y2);
 
 		int ligne3 = vectTriangles[i][2];
-		int x3 = vectPoints[ligne3 - 1][0] + tailleImageSurDeux;
-		int y3 = vectPoints[ligne3 - 1][1] + tailleImageSurDeux;
+		int x3 = vectPoints[ligne3 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		int y3 = vectPoints[ligne3 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
 		C.setX(x3);
 		C.setY(y3);
 
@@ -460,19 +455,19 @@ void faceLumiere(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 
 	for (unsigned int i = 0; i < vectTriangles.size(); ++i) {
 		ligne1 = vectTriangles[i][0];
-		Ax = vectPoints[ligne1 - 1][0] + tailleImageSurDeux;
-		Ay = vectPoints[ligne1 - 1][1] + tailleImageSurDeux;
-		Az = vectPoints[ligne1 - 1][2] + tailleImageSurDeux;
+		Ax = vectPoints[ligne1 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		Ay = vectPoints[ligne1 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
+		Az = vectPoints[ligne1 - 1][2] * tailleImageSurDeux + tailleImageSurDeux;
 
 		ligne2 = vectTriangles[i][1];
-		Bx = vectPoints[ligne2 - 1][0] + tailleImageSurDeux;
-		By = vectPoints[ligne2 - 1][1] + tailleImageSurDeux;
-		Bz = vectPoints[ligne2 - 1][2] + tailleImageSurDeux;
+		Bx = vectPoints[ligne2 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		By = vectPoints[ligne2 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
+		Bz = vectPoints[ligne2 - 1][2] * tailleImageSurDeux + tailleImageSurDeux;
 
 		ligne3 = vectTriangles[i][2];
-		Cx = vectPoints[ligne3 - 1][0] + tailleImageSurDeux;
-		Cy = vectPoints[ligne3 - 1][1] + tailleImageSurDeux;
-		Cz = vectPoints[ligne3 - 1][2] + tailleImageSurDeux;
+		Cx = vectPoints[ligne3 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		Cy = vectPoints[ligne3 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
+		Cz = vectPoints[ligne3 - 1][2] * tailleImageSurDeux + tailleImageSurDeux;
 
 		maxAbs = maxTrois(Ax, Bx, Cx);
 		minAbs = minTrois(Ax, Bx, Cx);
@@ -503,7 +498,7 @@ void faceLumiere(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 
 		//cout << xNormal << " " << yNormal << " " << zNormal << " light: " << xLumiere << " " << yLumiere << " " << zLumiere << endl;
 
-		double intensity = max(0., xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
+		double intensity = abs(xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
 		
 		//cout << intensity << endl;
 		TGAColor color = TGAColor(intensity * 255, intensity * 255, intensity* 255, 255);
@@ -653,12 +648,22 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	africanDiffuse.read_tga_file("african_head_diffuse.tga");
 	africanDiffuse.flip_vertically();
 	
-	TGAImage test(tailleImage, tailleImage, TGAImage::RGB);
+	TGAImage imageTexture(tailleImage, tailleImage, TGAImage::RGB);
 
 	double ligne1, ligne2, ligne3, Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, maxAbs, minAbs, maxOrd, minOrd, fA, fB, fC;
 	int pix_x, pix_y;
 	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy;
 	TGAColor colorPix;
+	TGAColor color;
+
+	double xLumiere = 0;
+	double yLumiere = 0;
+	double zLumiere = 1;
+
+	double tmp = sqrt(xLumiere*xLumiere + yLumiere*yLumiere + zLumiere*zLumiere);
+	xLumiere /= tmp;
+	yLumiere /= tmp;
+	zLumiere /= tmp;
 
 	for (int i = 0; i<1000; i++) {
 		for (int j = 0; j<1000; j++) {
@@ -668,36 +673,36 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	
 	for (unsigned int i = 0; i < vectTriangles.size(); ++i) {
 		ligne1 = vectTriangles[i][0];
-		Ax = vectPoints[ligne1 - 1][0] + tailleImageSurDeux;
-		Ay = vectPoints[ligne1 - 1][1] + tailleImageSurDeux;
-		Az = vectPoints[ligne1 - 1][2] + tailleImageSurDeux;
+		Ax = vectPoints[ligne1 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		Ay = vectPoints[ligne1 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
+		Az = vectPoints[ligne1 - 1][2] * tailleImageSurDeux + tailleImageSurDeux;
 		fA = vectTexturesF[i][0];
 		vtAx = vectTexturesVt[fA - 1][0];
 		vtAy = vectTexturesVt[fA - 1][1];
 		TGAColor colorA = africanDiffuse.get(vtAx, vtAy);
 
 		ligne2 = vectTriangles[i][1];
-		Bx = vectPoints[ligne2 - 1][0] + tailleImageSurDeux;
-		By = vectPoints[ligne2 - 1][1] + tailleImageSurDeux;
-		Bz = vectPoints[ligne2 - 1][2] + tailleImageSurDeux;
+		Bx = vectPoints[ligne2 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		By = vectPoints[ligne2 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
+		Bz = vectPoints[ligne2 - 1][2] * tailleImageSurDeux + tailleImageSurDeux;
 		fB = vectTexturesF[i][1];
 		vtBx = vectTexturesVt[fB - 1][0];
 		vtBy = vectTexturesVt[fB - 1][1];
 		TGAColor colorB = africanDiffuse.get(vtBx, vtBy);
 
 		ligne3 = vectTriangles[i][2];
-		Cx = vectPoints[ligne3 - 1][0] + tailleImageSurDeux;
-		Cy = vectPoints[ligne3 - 1][1] + tailleImageSurDeux;
-		Cz = vectPoints[ligne3 - 1][2] + tailleImageSurDeux;
+		Cx = vectPoints[ligne3 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
+		Cy = vectPoints[ligne3 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
+		Cz = vectPoints[ligne3 - 1][2] * tailleImageSurDeux + tailleImageSurDeux;
 		fC = vectTexturesF[i][2];
 		vtCx = vectTexturesVt[fC - 1][0];
 		vtCy = vectTexturesVt[fC - 1][1];
 		TGAColor colorC = africanDiffuse.get(vtCx, vtCy);
 
-		cout << "f : " << fA << "|" << fB << "|" << fC << endl;
-		cout << "vtA : " << vtAx << "|" << vtAy << endl;
-		cout << "vtB : " << vtBx << "|" << vtBy << endl;
-		cout << "vtC : " << vtCx << "|" << vtCy << endl;
+		//cout << "f : " << fA << "|" << fB << "|" << fC << endl;
+		//cout << "vtA : " << vtAx << "|" << vtAy << endl;
+		//cout << "vtB : " << vtBx << "|" << vtBy << endl;
+		//cout << "vtC : " << vtCx << "|" << vtCy << endl;
 /*		test.set(Ax, Ay, colorA);
 		test.set(Bx, By, colorB);
 		test.set(Cx, Cy, colorC);
@@ -721,24 +726,45 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 				if (u < -1e-5 || v < -1e-5 || w < -1e-5) {
 				}
 				else {
-					double Pz = u*Az + v*Bz + w*Cz;
+					double Pz = w*Az + u*Bz + v*Cz;
 					if (zbuffer[Px][Py] > Pz) {
 						continue;
 					}
 					else {
 						zbuffer[Px][Py] = Pz;
-						pix_x = (vtAx*w + vtBx*u + vtCx*v) * 1024;
-						pix_y = (vtAy*w + vtBy*u + vtCy*v) * 1024;
+						pix_x = (vtAx*w + vtBx*u + vtCx*v) * africanDiffuse.get_width();
+						pix_y = (vtAy*w + vtBy*u + vtCy*v) * africanDiffuse.get_height();
 						colorPix = africanDiffuse.get(pix_x, pix_y);
-						test.set(Px, Py, colorPix);
+						//test.set(Px, Py, colorPix);
+
+						int xAB = Bx - Ax;
+						int yAB = By - Ay;
+						int zAB = Bz - Az;
+
+						int xAC = Cx - Ax;
+						int yAC = Cy - Ay;
+						int zAC = Cz - Az;
+
+						double xNormal = yAB*zAC - zAB*yAC;
+						double yNormal = zAB*xAC - xAB*zAC;
+						double zNormal = xAB*yAC - yAB*xAC;
+
+						double tmp = sqrt(xNormal*xNormal + yNormal*yNormal + zNormal*zNormal);
+						xNormal /= tmp;
+						yNormal /= tmp;
+						zNormal /= tmp;
+						double intensity = abs(xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
+						//cout << intensity << endl;
+						color = TGAColor(colorPix.r*intensity, colorPix.g* intensity, colorPix.b* intensity, colorPix.a * intensity);
+						imageTexture.set(Px, Py, color);
 					}
 				}
 			}
 		}
 	}
 
-	test.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-	test.write_tga_file("test.tga");
+	imageTexture.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+	imageTexture.write_tga_file("imageTexture.tga");
 
 	cout << "Succes" << endl;
 }
@@ -749,12 +775,11 @@ int main(int argc, char** argv) {
 	vector<vector<double> > vectTriangles = lectureTriangles("african_head.obj");
 	vector<vector<double> > vectTexturesF = lectureTexturesF("african_head.obj");
 	vector<vector<double> > vectTexturesVt = lectureTexturesVt("african_head.obj");
-	//dessinePoint(vectPoints);
-	//dessineFilDeFer(vectPoints,vectTriangles);
-	//testTriangle();
+	dessinePoint(vectPoints);
+	dessineFilDeFer(vectPoints,vectTriangles);
 	//dessineTriangle(vectPoints, vectTriangles);
 	//lineSweeping(vectPoints, vectTriangles);
-	//faceLumiere(vectPoints, vectTriangles);
+	faceLumiere(vectPoints, vectTriangles);
 	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt);
 	return 0;
 }
