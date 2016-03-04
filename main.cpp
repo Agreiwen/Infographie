@@ -8,6 +8,8 @@
 #include <cmath>
 #include <algorithm>
 
+# define PI           3.14159265358979323846  /* pi */
+
 using namespace std;
 
 double zbuffer[1000][1000];
@@ -259,18 +261,45 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 
 	double ligne1, ligne2, ligne3, Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, maxAbs, minAbs, maxOrd, minOrd, fA, fB, fC;
 	int pix_x, pix_y;
-	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy;
+	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy, xLumiere, yLumiere, zLumiere;
+	double c = 10000;
 	TGAColor colorPix;
 	TGAColor color;
 
-	double xLumiere = 0;
-	double yLumiere = 0;
-	double zLumiere = 1;
+	Matrice lumiere = Matrice(3, 1);
+	lumiere(0, 0) = 0;
+	lumiere(1, 0) = 0;
+	lumiere(2, 0) = 1;
+
+	xLumiere = lumiere(0, 0);
+	yLumiere = lumiere(1, 0);
+	zLumiere = lumiere(2, 0);
 
 	Matrice A(4, 1);
 	Matrice B(4, 1);
 	Matrice C(4, 1);
 	Matrice res(4, 1);
+	Matrice aux(4, 1);
+
+	Matrice perspective = Matrice(4, 4);
+	perspective(0, 0) = 1;
+	perspective(1, 1) = 1;
+	perspective(2, 2) = 1;
+	perspective(3, 3) = 1;
+	perspective(3, 2) = -1 / c;
+
+	double alpha = 25*(PI)/180;
+	Matrice rotation = Matrice(4, 4);
+	rotation(0, 0) = cos(alpha);
+	rotation(0, 2) = sin(alpha);
+	rotation(1, 1) = 1;
+	rotation(2, 0) = -sin(alpha);
+	rotation(2, 2) = cos(alpha);
+	rotation(3, 3) = 1;
+
+	//cout << identite << endl;
+
+	res = viewPort*perspective*rotation;
 
 	double tmp = sqrt(xLumiere*xLumiere + yLumiere*yLumiere + zLumiere*zLumiere);
 	xLumiere /= tmp;
@@ -290,10 +319,10 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		A(2, 0) = vectPoints[ligne1 - 1][2];
 		A(3, 0) = 1;
 
-		res = viewPort.operator*(A);
-		Ax = res(0,0);
-		Ay = res(1,0);
-		Az = res(2,0);
+		aux = res*A;
+		Ax = aux(0,0) / aux(3, 0);
+		Ay = aux(1,0) / aux(3, 0);
+		Az = aux(2,0) / aux(3, 0);
 
 		fA = vectTexturesF[i][0];
 		vtAx = vectTexturesVt[fA - 1][0];
@@ -306,10 +335,10 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		B(2, 0) = vectPoints[ligne2 - 1][2];
 		B(3, 0) = 1;
 
-		res = viewPort.operator*(B);
-		Bx = res(0, 0);
-		By = res(1, 0);
-		Bz = res(2, 0);
+		aux = res*B;
+		Bx = aux(0, 0) / aux(3, 0);
+		By = aux(1, 0) / aux(3, 0);
+		Bz = aux(2, 0) / aux(3, 0);
 
 		fB = vectTexturesF[i][1];
 		vtBx = vectTexturesVt[fB - 1][0];
@@ -322,10 +351,10 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		C(2, 0) = vectPoints[ligne3 - 1][2];
 		C(3, 0) = 1;
 
-		res = viewPort.operator*(C);
-		Cx = res(0, 0);
-		Cy = res(1, 0);
-		Cz = res(2, 0);
+		aux = res*C;
+		Cx = aux(0, 0) / aux(3, 0);
+		Cy = aux(1, 0) / aux(3, 0);
+		Cz = aux(2, 0) / aux(3, 0);
 
 		fC = vectTexturesF[i][2];
 		vtCx = vectTexturesVt[fC - 1][0];
@@ -341,6 +370,11 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		minAbs = minTrois(Ax, Bx, Cx);
 		maxOrd = maxTrois(Ay, By, Cy);
 		minOrd = minTrois(Ay, By, Cy);
+
+		minAbs = max(0., minAbs);
+		minOrd = max(0., minOrd);
+		maxAbs = min(maxAbs, (double)tailleImage);
+		maxOrd = min(maxOrd, (double)tailleImage);
 
 		double denominateur = (((Bx - Ax)*(Cy - Ay)) - ((Cx - Ax)*(By - Ay)));
 		double coeff = 1. / denominateur;
@@ -381,7 +415,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						xNormal /= tmp;
 						yNormal /= tmp;
 						zNormal /= tmp;
-						double intensity = abs(xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
+						double intensity = max(0.,xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
 						color = TGAColor(colorPix.r*intensity, colorPix.g* intensity, colorPix.b* intensity, colorPix.a * intensity);
 						imageTexture.set(Px, Py, color);
 					}
@@ -414,6 +448,8 @@ int main(int argc, char** argv) {
 	viewPort(2, 3) = 500;
 	viewPort(3, 3) = 1;
 	//cout << viewPort << endl;
+
+	
 
 	/* On dessine l'image */
 	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, viewPort);
