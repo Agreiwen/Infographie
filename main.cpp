@@ -115,7 +115,7 @@ vector<vector<double> > lectureTriangles(string nomFichier) {
 }
 
 vector<vector<double> > lectureTexturesF(string nomFichier) {
-	cout << "Lecture des textures f (partie 1)... ";
+	cout << "Lecture des textures f... ";
 	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
 
 	if (fichier)  // si l'ouverture a fonctionné
@@ -177,7 +177,7 @@ vector<vector<double> > lectureTexturesF(string nomFichier) {
 }
 
 vector<vector<double> > lectureTexturesVt(string nomFichier) {
-	cout << "Lecture des textures vt (partie 2)... ";
+	cout << "Lecture des textures vt... ";
 	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
 
 	if (fichier)  // si l'ouverture a fonctionné
@@ -271,6 +271,68 @@ vector<vector<double> > lectureVecteursNormauxVn(string nomFichier) {
 		cerr << "Impossible d'ouvrir le fichier !" << endl;
 }
 
+vector<vector<double> > lectureVecteursF(string nomFichier) {
+	cout << "Lecture des vecteurs f... ";
+	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
+
+	if (fichier)  // si l'ouverture a fonctionné
+	{
+		string ligne;
+		vector<vector<double> > vect;
+		vector<double> vectLigne;
+		int nbVectF = 0;
+		//int test = 0;
+		while (getline(fichier, ligne, '\n'))  // tant que l'on peut mettre la ligne dans "contenu"
+		{
+			/*if (test >= 5)
+			break;*/
+			if (ligne[0] == 'f' && ligne[1] == ' ')
+			{
+				//test++;
+				string aux;
+				for (unsigned int i = 2; i < ligne.size(); ++i)
+				{
+					aux.push_back(ligne[i]);
+				}
+
+				int posEspace1 = aux.find(' ', 0);
+				int posEspace2 = aux.find(' ', posEspace1 + 1);
+
+				string texte1 = aux.substr(0, posEspace1);
+				string texte2 = aux.substr(posEspace1 + 1, posEspace2 - (posEspace1 + 1));
+				string texte3 = aux.substr(posEspace2 + 1, aux.size() - (posEspace2 + 1));
+
+				int posSlash1Texte1 = texte1.find('/', 0);
+				int posSlash1Texte2 = texte2.find('/', 0);
+				int posSlash1Texte3 = texte3.find('/', 0);
+
+				int posSlash2Texte1 = texte1.find('/', posSlash1Texte1 + 1);
+				int posSlash2Texte2 = texte2.find('/', posSlash1Texte2 + 1);
+				int posSlash2Texte3 = texte3.find('/', posSlash1Texte3 + 1);
+
+				double partie1 = atof(texte1.substr(posSlash2Texte1 + 1, texte1.size() - 1 - posSlash2Texte1).c_str());
+				double partie2 = atof(texte2.substr(posSlash2Texte2 + 1, texte2.size() - 1 - posSlash2Texte2).c_str());
+				double partie3 = atof(texte3.substr(posSlash2Texte3 + 1, texte3.size() - 1 - posSlash2Texte3).c_str());
+
+				//cout << partie1 << " | " << partie2 << " | " << partie3 << endl;
+
+				vectLigne.push_back(partie1);
+				vectLigne.push_back(partie2);
+				vectLigne.push_back(partie3);
+				vect.push_back(vectLigne);
+
+				nbVectF++;
+			}
+			vectLigne.clear();
+		}
+		cout << "(" << nbVectF << " vecteurs f) ";
+		cout << "Succes" << endl;
+		return vect;
+	}
+	else
+		cerr << "Impossible d'ouvrir le fichier !" << endl;
+}
+
 int maxDeux(int a, int b) {
 	if (a >= b) {
 		return a;
@@ -297,7 +359,7 @@ int minTrois(int a, int b, int c) {
 	return minDeux(minDeux(a, b), c);
 }
 
-void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &viewPort, Matrice &rotation) {
+void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, vector<vector<double> > &vectNormauxVn, vector<vector<double> > &vectNormauxF, Matrice &viewPort, Matrice &rotation) {
 	cout << "Creation image texture... ";
 	TGAImage image(tailleImage, tailleImage, TGAImage::RGB);
 
@@ -307,9 +369,9 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	
 	TGAImage imageTexture(tailleImage, tailleImage, TGAImage::RGB);
 
-	double ligne1, ligne2, ligne3, Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, maxAbs, minAbs, maxOrd, minOrd, fA, fB, fC;
+	double ligne1, ligne2, ligne3, Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, maxAbs, minAbs, maxOrd, minOrd, fTextureA, fTextureB, fTextureC, fVectA, fVectB, fVectC;
 	int pix_x, pix_y;
-	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy, xLumiere, yLumiere, zLumiere;
+	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy, xLumiere, yLumiere, zLumiere, vnAx, vnAy, vnAz, vnBx, vnBy, vnBz, vnCx, vnCy, vnCz;
 	double c = 10000;
 	TGAColor colorPix;
 	TGAColor color;
@@ -363,10 +425,15 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		Ay = aux(1,0) / aux(3, 0);
 		Az = aux(2,0) / aux(3, 0);
 
-		fA = vectTexturesF[i][0];
-		vtAx = vectTexturesVt[fA - 1][0];
-		vtAy = vectTexturesVt[fA - 1][1];
+		fTextureA = vectTexturesF[i][0];
+		vtAx = vectTexturesVt[fTextureA - 1][0];
+		vtAy = vectTexturesVt[fTextureA - 1][1];
 		TGAColor colorA = africanDiffuse.get(vtAx, vtAy);
+
+		fVectA = vectNormauxF[i][0];
+		vnAx = vectNormauxVn[fVectA - 1][0];
+		vnAy = vectNormauxVn[fVectA - 1][1];
+		vnAz = vectNormauxVn[fVectA - 1][2];
 
 		ligne2 = vectTriangles[i][1];
 		B(0, 0) = vectPoints[ligne2 - 1][0];
@@ -379,10 +446,15 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		By = aux(1, 0) / aux(3, 0);
 		Bz = aux(2, 0) / aux(3, 0);
 
-		fB = vectTexturesF[i][1];
-		vtBx = vectTexturesVt[fB - 1][0];
-		vtBy = vectTexturesVt[fB - 1][1];
+		fTextureB = vectTexturesF[i][1];
+		vtBx = vectTexturesVt[fTextureB - 1][0];
+		vtBy = vectTexturesVt[fTextureB - 1][1];
 		TGAColor colorB = africanDiffuse.get(vtBx, vtBy);
+
+		fVectB = vectNormauxF[i][1];
+		vnBx = vectNormauxVn[fVectB - 1][0];
+		vnBy = vectNormauxVn[fVectB - 1][1];
+		vnBz = vectNormauxVn[fVectB - 1][2];
 
 		ligne3 = vectTriangles[i][2];
 		C(0, 0) = vectPoints[ligne3 - 1][0];
@@ -395,15 +467,24 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		Cy = aux(1, 0) / aux(3, 0);
 		Cz = aux(2, 0) / aux(3, 0);
 
-		fC = vectTexturesF[i][2];
-		vtCx = vectTexturesVt[fC - 1][0];
-		vtCy = vectTexturesVt[fC - 1][1];
+		fTextureC = vectTexturesF[i][2];
+		vtCx = vectTexturesVt[fTextureC - 1][0];
+		vtCy = vectTexturesVt[fTextureC - 1][1];
 		TGAColor colorC = africanDiffuse.get(vtCx, vtCy);
 
-		//cout << "f : " << fA << "|" << fB << "|" << fC << endl;
+		fVectC = vectNormauxF[i][2];
+		vnCx = vectNormauxVn[fVectC - 1][0];
+		vnCy = vectNormauxVn[fVectC - 1][1];
+		vnCz = vectNormauxVn[fVectC - 1][2];
+
+		//cout << "f : " << fTextureA << "|" << fTextureB << "|" << fTextureC << endl;
 		//cout << "vtA : " << vtAx << "|" << vtAy << endl;
 		//cout << "vtB : " << vtBx << "|" << vtBy << endl;
 		//cout << "vtC : " << vtCx << "|" << vtCy << endl;
+		//cout << "fVect : " << fVectA << "|" << fVectB << "|" << fVectC << endl;
+		//cout << "vnA : " << vnAx << "|" << vnAy << "|" << vnAz << endl;
+		//cout << "vnB : " << vnBx << "|" << vnBy << "|" << vnBz << endl;
+		//cout << "vnC : " << vnCx << "|" << vnCy << "|" << vnCz << endl;
 
 		/* Boite englobante */
 		maxAbs = maxTrois(Ax, Bx, Cx);
@@ -440,17 +521,17 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						pix_y = (vtAy*w + vtBy*u + vtCy*v) * africanDiffuse.get_height();
 						colorPix = africanDiffuse.get(pix_x, pix_y);
 
-						int xAB = Bx - Ax;
+						/*int xAB = Bx - Ax;
 						int yAB = By - Ay;
 						int zAB = Bz - Az;
 
 						int xAC = Cx - Ax;
 						int yAC = Cy - Ay;
-						int zAC = Cz - Az;
+						int zAC = Cz - Az;*/
 
-						double xNormal = yAB*zAC - zAB*yAC;
-						double yNormal = zAB*xAC - xAB*zAC;
-						double zNormal = xAB*yAC - yAB*xAC;
+						double xNormal = vnAx*w + vnBx*u + vnCx*v;
+						double yNormal = vnAy*w + vnBy*u + vnCy*v;
+						double zNormal = vnAz*w + vnBz*u + vnCz*v;
 
 						double tmp = sqrt(xNormal*xNormal + yNormal*yNormal + zNormal*zNormal);
 						xNormal /= tmp;
@@ -479,6 +560,7 @@ int main(int argc, char** argv) {
 	vector<vector<double> > vectTexturesF = lectureTexturesF("african_head.obj");
 	vector<vector<double> > vectTexturesVt = lectureTexturesVt("african_head.obj");
 	vector<vector<double> > vectNormauxVn = lectureVecteursNormauxVn("african_head.obj");
+	vector<vector<double> > vectNormauxF = lectureVecteursF("african_head.obj");
 
 	/* Creation du Viewport */
 	Matrice viewPort = Matrice(4, 4);
@@ -501,6 +583,6 @@ int main(int argc, char** argv) {
 	rotation(3, 3) = 1;
 
 	/* On dessine l'image */
-	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, viewPort, rotation);
+	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, vectNormauxVn, vectNormauxF, viewPort, rotation);
 	return 0;
 }
