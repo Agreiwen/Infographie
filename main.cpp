@@ -223,6 +223,54 @@ vector<vector<double> > lectureTexturesVt(string nomFichier) {
 		cerr << "Impossible d'ouvrir le fichier !" << endl;
 }
 
+vector<vector<double> > lectureVecteursNormauxVn(string nomFichier) {
+	cout << "Lecture des vecteurs normaux... ";
+	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
+
+	if (fichier)  // si l'ouverture a fonctionné
+	{
+		string ligne;
+		vector<vector<double> > vect;
+		vector<double> vectLigne;
+		int nbVectNorm = 0;
+		//int test = 0;
+		while (getline(fichier, ligne, '\n'))  // tant que l'on peut mettre la ligne dans "contenu"
+		{
+			/*if (test >= 5)
+			break;*/
+			if (ligne[0] == 'v' && ligne[1] == 'n' && ligne[2] == ' ' && ligne[3] == ' ')
+			{
+				//test++;
+				string aux;
+				for (unsigned int i = 4; i < ligne.size(); ++i)
+				{
+					aux.push_back(ligne[i]);
+				}
+
+				stringstream ss;
+				ss.str(aux);
+				double partie1, partie2, partie3;
+				ss >> partie1 >> partie2 >> partie3;
+
+				//cout << partie1 << " | " << partie2 << " | " << partie3 << endl;
+
+				vectLigne.push_back(partie1);
+				vectLigne.push_back(partie2);
+				vectLigne.push_back(partie3);
+				vect.push_back(vectLigne);
+
+				nbVectNorm++;
+			}
+			vectLigne.clear();
+		}
+		cout << "(" << nbVectNorm << " vecteurs normaux) ";
+		cout << "Succes" << endl;
+		return vect;
+	}
+	else
+		cerr << "Impossible d'ouvrir le fichier !" << endl;
+}
+
 int maxDeux(int a, int b) {
 	if (a >= b) {
 		return a;
@@ -249,7 +297,7 @@ int minTrois(int a, int b, int c) {
 	return minDeux(minDeux(a, b), c);
 }
 
-void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &viewPort) {
+void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &viewPort, Matrice &rotation) {
 	cout << "Creation image texture... ";
 	TGAImage image(tailleImage, tailleImage, TGAImage::RGB);
 
@@ -287,15 +335,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	perspective(2, 2) = 1;
 	perspective(3, 3) = 1;
 	perspective(3, 2) = -1 / c;
-
-	double alpha = 25*(PI)/180;
-	Matrice rotation = Matrice(4, 4);
-	rotation(0, 0) = cos(alpha);
-	rotation(0, 2) = sin(alpha);
-	rotation(1, 1) = 1;
-	rotation(2, 0) = -sin(alpha);
-	rotation(2, 2) = cos(alpha);
-	rotation(3, 3) = 1;
 
 	//cout << identite << endl;
 
@@ -366,11 +405,13 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		//cout << "vtB : " << vtBx << "|" << vtBy << endl;
 		//cout << "vtC : " << vtCx << "|" << vtCy << endl;
 
+		/* Boite englobante */
 		maxAbs = maxTrois(Ax, Bx, Cx);
 		minAbs = minTrois(Ax, Bx, Cx);
 		maxOrd = maxTrois(Ay, By, Cy);
 		minOrd = minTrois(Ay, By, Cy);
 
+		/* Pour ne pas être out of map */
 		minAbs = max(0., minAbs);
 		minOrd = max(0., minOrd);
 		maxAbs = min(maxAbs, (double)tailleImage);
@@ -437,6 +478,7 @@ int main(int argc, char** argv) {
 	vector<vector<double> > vectTriangles = lectureTriangles("african_head.obj");
 	vector<vector<double> > vectTexturesF = lectureTexturesF("african_head.obj");
 	vector<vector<double> > vectTexturesVt = lectureTexturesVt("african_head.obj");
+	vector<vector<double> > vectNormauxVn = lectureVecteursNormauxVn("african_head.obj");
 
 	/* Creation du Viewport */
 	Matrice viewPort = Matrice(4, 4);
@@ -447,11 +489,18 @@ int main(int argc, char** argv) {
 	viewPort(2, 2) = 500;
 	viewPort(2, 3) = 500;
 	viewPort(3, 3) = 1;
-	//cout << viewPort << endl;
 
-	
+	/* Création de la Rotation */
+	double angle = 25 * (PI) / 180;
+	Matrice rotation = Matrice(4, 4);
+	rotation(0, 0) = cos(angle);
+	rotation(0, 2) = sin(angle);
+	rotation(1, 1) = 1;
+	rotation(2, 0) = -sin(angle);
+	rotation(2, 2) = cos(angle);
+	rotation(3, 3) = 1;
 
 	/* On dessine l'image */
-	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, viewPort);
+	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, viewPort, rotation);
 	return 0;
 }
