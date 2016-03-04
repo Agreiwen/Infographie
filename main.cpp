@@ -10,11 +10,9 @@
 
 using namespace std;
 
-const TGAColor white = TGAColor(255, 255, 255, 255);
-const TGAColor red = TGAColor(255, 0, 0, 255);
-const TGAColor blue = TGAColor(159, 121, 238, 255);
-const TGAColor purple = TGAColor(155, 48, 255, 255);
 double zbuffer[1000][1000];
+int tailleImage = 1000;
+int tailleImageSurDeux = tailleImage / 2;
 
 vector<vector<double> > lectureSommets(string nomFichier) {
 	cout << "Lecture des sommets... ";
@@ -249,10 +247,8 @@ int minTrois(int a, int b, int c) {
 	return minDeux(minDeux(a, b), c);
 }
 
-void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt) {
+void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &viewPort) {
 	cout << "Creation image texture... ";
-	int tailleImage = 1000;
-	int tailleImageSurDeux = tailleImage / 2;
 	TGAImage image(tailleImage, tailleImage, TGAImage::RGB);
 
 	TGAImage africanDiffuse;
@@ -271,15 +267,10 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	double yLumiere = 0;
 	double zLumiere = 1;
 
-	Matrice viewPort = Matrice(4, 4);
-	viewPort(0, 0) = tailleImageSurDeux;
-	viewPort(0, 3) = tailleImageSurDeux;
-	viewPort(1, 2) = tailleImageSurDeux;
-	viewPort(1, 3) = tailleImageSurDeux;
-	viewPort(2, 2) = 1;
-	viewPort(3, 3) = 1;
-
-	Matrice A,B,C = Matrice(4,1);
+	Matrice A(4, 1);
+	Matrice B(4, 1);
+	Matrice C(4, 1);
+	Matrice res(4, 1);
 
 	double tmp = sqrt(xLumiere*xLumiere + yLumiere*yLumiere + zLumiere*zLumiere);
 	xLumiere /= tmp;
@@ -294,27 +285,48 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	
 	for (unsigned int i = 0; i < vectTriangles.size(); ++i) {
 		ligne1 = vectTriangles[i][0];
-		Ax = vectPoints[ligne1 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
-		Ay = vectPoints[ligne1 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
-		Az = vectPoints[ligne1 - 1][2] * tailleImageSurDeux + tailleImageSurDeux;
+		A(0, 0) = vectPoints[ligne1 - 1][0];
+		A(1, 0) = vectPoints[ligne1 - 1][1];
+		A(2, 0) = vectPoints[ligne1 - 1][2];
+		A(3, 0) = 1;
+
+		res = viewPort.operator*(A);
+		Ax = res(0,0);
+		Ay = res(1,0);
+		Az = res(2,0);
+
 		fA = vectTexturesF[i][0];
 		vtAx = vectTexturesVt[fA - 1][0];
 		vtAy = vectTexturesVt[fA - 1][1];
 		TGAColor colorA = africanDiffuse.get(vtAx, vtAy);
 
 		ligne2 = vectTriangles[i][1];
-		Bx = vectPoints[ligne2 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
-		By = vectPoints[ligne2 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
-		Bz = vectPoints[ligne2 - 1][2] * tailleImageSurDeux + tailleImageSurDeux;
+		B(0, 0) = vectPoints[ligne2 - 1][0];
+		B(1, 0) = vectPoints[ligne2 - 1][1];
+		B(2, 0) = vectPoints[ligne2 - 1][2];
+		B(3, 0) = 1;
+
+		res = viewPort.operator*(B);
+		Bx = res(0, 0);
+		By = res(1, 0);
+		Bz = res(2, 0);
+
 		fB = vectTexturesF[i][1];
 		vtBx = vectTexturesVt[fB - 1][0];
 		vtBy = vectTexturesVt[fB - 1][1];
 		TGAColor colorB = africanDiffuse.get(vtBx, vtBy);
 
 		ligne3 = vectTriangles[i][2];
-		Cx = vectPoints[ligne3 - 1][0] * tailleImageSurDeux + tailleImageSurDeux;
-		Cy = vectPoints[ligne3 - 1][1] * tailleImageSurDeux + tailleImageSurDeux;
-		Cz = vectPoints[ligne3 - 1][2] * tailleImageSurDeux + tailleImageSurDeux;
+		C(0, 0) = vectPoints[ligne3 - 1][0];
+		C(1, 0) = vectPoints[ligne3 - 1][1];
+		C(2, 0) = vectPoints[ligne3 - 1][2];
+		C(3, 0) = 1;
+
+		res = viewPort.operator*(C);
+		Cx = res(0, 0);
+		Cy = res(1, 0);
+		Cz = res(2, 0);
+
 		fC = vectTexturesF[i][2];
 		vtCx = vectTexturesVt[fC - 1][0];
 		vtCy = vectTexturesVt[fC - 1][1];
@@ -324,10 +336,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		//cout << "vtA : " << vtAx << "|" << vtAy << endl;
 		//cout << "vtB : " << vtBx << "|" << vtBy << endl;
 		//cout << "vtC : " << vtCx << "|" << vtCy << endl;
-/*		test.set(Ax, Ay, colorA);
-		test.set(Bx, By, colorB);
-		test.set(Cx, Cy, colorC);
-*/
 
 		maxAbs = maxTrois(Ax, Bx, Cx);
 		minAbs = minTrois(Ax, Bx, Cx);
@@ -356,7 +364,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						pix_x = (vtAx*w + vtBx*u + vtCx*v) * africanDiffuse.get_width();
 						pix_y = (vtAy*w + vtBy*u + vtCy*v) * africanDiffuse.get_height();
 						colorPix = africanDiffuse.get(pix_x, pix_y);
-						//test.set(Px, Py, colorPix);
 
 						int xAB = Bx - Ax;
 						int yAB = By - Ay;
@@ -375,7 +382,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						yNormal /= tmp;
 						zNormal /= tmp;
 						double intensity = abs(xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
-						//cout << intensity << endl;
 						color = TGAColor(colorPix.r*intensity, colorPix.g* intensity, colorPix.b* intensity, colorPix.a * intensity);
 						imageTexture.set(Px, Py, color);
 					}
@@ -392,10 +398,24 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 
 int main(int argc, char** argv) {
 	cout << "Projet d'infographie - M1 Informatique" << endl;
+	/* Parse du fichier obj */
 	vector<vector<double> > vectPoints = lectureSommets("african_head.obj");
 	vector<vector<double> > vectTriangles = lectureTriangles("african_head.obj");
 	vector<vector<double> > vectTexturesF = lectureTexturesF("african_head.obj");
 	vector<vector<double> > vectTexturesVt = lectureTexturesVt("african_head.obj");
-	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt);
+
+	/* Creation du Viewport */
+	Matrice viewPort = Matrice(4, 4);
+	viewPort(0, 0) = tailleImageSurDeux;
+	viewPort(0, 3) = tailleImageSurDeux;
+	viewPort(1, 1) = tailleImageSurDeux;
+	viewPort(1, 3) = tailleImageSurDeux;
+	viewPort(2, 2) = 500;
+	viewPort(2, 3) = 500;
+	viewPort(3, 3) = 1;
+	//cout << viewPort << endl;
+
+	/* On dessine l'image */
+	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, viewPort);
 	return 0;
 }
