@@ -359,7 +359,7 @@ int minTrois(int a, int b, int c) {
 	return minDeux(minDeux(a, b), c);
 }
 
-void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, vector<vector<double> > &vectNormauxVn, vector<vector<double> > &vectNormauxF, Matrice &viewPort, Matrice &rotation) {
+void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, vector<vector<double> > &vectNormauxVn, vector<vector<double> > &vectNormauxF, Matrice &viewPort, Matrice &perspective, Matrice &rotation) {
 	cout << "Creation image texture... ";
 	TGAImage image(tailleImage, tailleImage, TGAImage::RGB);
 
@@ -369,10 +369,12 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	
 	TGAImage imageTexture(tailleImage, tailleImage, TGAImage::RGB);
 
-	double ligne1, ligne2, ligne3, Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, maxAbs, minAbs, maxOrd, minOrd, fTextureA, fTextureB, fTextureC, fVectA, fVectB, fVectC;
-	int pix_x, pix_y;
-	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy, xLumiere, yLumiere, zLumiere, vnAx, vnAy, vnAz, vnBx, vnBy, vnBz, vnCx, vnCy, vnCz;
-	double c = 10000;
+	int ligne1, ligne2, ligne3, fTextureA, fTextureB, fTextureC, fVectA, fVectB, fVectC, xLumiere, yLumiere, zLumiere;
+	double Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz;
+	double maxAbs, minAbs, maxOrd, minOrd;
+	double pix_x, pix_y;
+	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy;
+	double vnAx, vnAy, vnAz, vnBx, vnBy, vnBz, vnCx, vnCy, vnCz;
 	TGAColor colorPix;
 	TGAColor color;
 
@@ -390,15 +392,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	Matrice C(4, 1);
 	Matrice res(4, 1);
 	Matrice aux(4, 1);
-
-	Matrice perspective = Matrice(4, 4);
-	perspective(0, 0) = 1;
-	perspective(1, 1) = 1;
-	perspective(2, 2) = 1;
-	perspective(3, 3) = 1;
-	perspective(3, 2) = -1 / c;
-
-	//cout << identite << endl;
 
 	res = viewPort*perspective*rotation;
 
@@ -521,14 +514,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						pix_y = (vtAy*w + vtBy*u + vtCy*v) * africanDiffuse.get_height();
 						colorPix = africanDiffuse.get(pix_x, pix_y);
 
-						/*int xAB = Bx - Ax;
-						int yAB = By - Ay;
-						int zAB = Bz - Az;
-
-						int xAC = Cx - Ax;
-						int yAC = Cy - Ay;
-						int zAC = Cz - Az;*/
-
 						double xNormal = vnAx*w + vnBx*u + vnCx*v;
 						double yNormal = vnAy*w + vnBy*u + vnCy*v;
 						double zNormal = vnAz*w + vnBz*u + vnCz*v;
@@ -552,7 +537,8 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	cout << "Succes" << endl;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
 	cout << "Projet d'infographie - M1 Informatique" << endl;
 	/* Parse du fichier obj */
 	vector<vector<double> > vectPoints = lectureSommets("african_head.obj");
@@ -572,8 +558,17 @@ int main(int argc, char** argv) {
 	viewPort(2, 3) = 500;
 	viewPort(3, 3) = 1;
 
+	/* Création de la Persective */
+	double c = 10000;
+	Matrice perspective = Matrice(4, 4);
+	perspective(0, 0) = 1;
+	perspective(1, 1) = 1;
+	perspective(2, 2) = 1;
+	perspective(3, 3) = 1;
+	perspective(3, 2) = -1 / c;
+
 	/* Création de la Rotation */
-	double angle = 25 * (PI) / 180;
+	double angle = 0 * (PI) / 180;
 	Matrice rotation = Matrice(4, 4);
 	rotation(0, 0) = cos(angle);
 	rotation(0, 2) = sin(angle);
@@ -583,6 +578,6 @@ int main(int argc, char** argv) {
 	rotation(3, 3) = 1;
 
 	/* On dessine l'image */
-	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, vectNormauxVn, vectNormauxF, viewPort, rotation);
+	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, vectNormauxVn, vectNormauxF, viewPort, perspective, rotation);
 	return 0;
 }
