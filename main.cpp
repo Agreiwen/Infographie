@@ -370,6 +370,10 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	TGAImage africanNM;
 	africanNM.read_tga_file("african_head_nm.tga");
 	africanNM.flip_vertically();
+
+	TGAImage africanSpecular;
+	africanSpecular.read_tga_file("african_head_spec.tga");
+	africanSpecular.flip_vertically();
 	
 	TGAImage imageTexture(tailleImage, tailleImage, TGAImage::RGB);
 
@@ -379,9 +383,8 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	double pix_x, pix_y;
 	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy;
 	double vnAx, vnAy, vnAz, vnBx, vnBy, vnBz, vnCx, vnCy, vnCz;
-	TGAColor colorPix;
-	TGAColor color;
-	TGAColor ColorNm;
+	double intensity, xNormal, yNormal, zNormal, produitScalaire, xR, yR, zR, spec;
+	TGAColor colorPix, color, colorNm, colorSpec;
 
 	Matrice lumiere = Matrice(3, 1);
 	lumiere(0, 0) = 1;
@@ -519,22 +522,34 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						pix_y = (vtAy*w + vtBy*u + vtCy*v) * africanDiffuse.get_height();
 						colorPix = africanDiffuse.get(pix_x, pix_y);
 
-						ColorNm = africanNM.get(pix_x, pix_y);
-
-						/*double xNormal = vnAx*w + vnBx*u + vnCx*v;
-						double yNormal = vnAy*w + vnBy*u + vnCy*v;
-						double zNormal = vnAz*w + vnBz*u + vnCz*v;*/
-
-						double xNormal = ColorNm.r;
-						double yNormal = ColorNm.g;
-						double zNormal = ColorNm.b;
+						colorNm = africanNM.get(pix_x, pix_y);
+						xNormal = colorNm.r;
+						yNormal = colorNm.g;
+						zNormal = colorNm.b;
 
 						double tmp = sqrt(xNormal*xNormal + yNormal*yNormal + zNormal*zNormal);
 						xNormal /= tmp;
 						yNormal /= tmp;
 						zNormal /= tmp;
-						double intensity = max(0.,xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
-						color = TGAColor(colorPix.r*intensity, colorPix.g* intensity, colorPix.b* intensity, colorPix.a * intensity);
+
+						produitScalaire = 2*(xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
+						xR = xNormal * produitScalaire;
+						yR = yNormal * produitScalaire;
+						zR = zNormal * produitScalaire;
+						xR -= xLumiere;
+						yR -= yLumiere;
+						zR -= zLumiere;
+
+						double tmp1 = sqrt(xR*xR + yR*yR + zR*zR);
+						xR /= tmp1;
+						yR /= tmp1;
+						zR /= tmp1;
+
+						colorSpec = africanSpecular.get(pix_x, pix_y);
+						spec = pow(max(zR, 0.), colorSpec.b);
+
+						intensity = max(0.,xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
+						color = TGAColor(min(5+colorPix.r*(intensity+0.6*spec),255.), min(5+colorPix.g*(intensity+0.6*spec),255.), min(5+colorPix.b*(intensity+0.6*spec),255.), min(5+colorPix.a*(intensity+0.6*spec),255.));
 						imageTexture.set(Px, Py, color);
 					}
 				}
