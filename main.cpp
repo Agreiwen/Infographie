@@ -366,10 +366,14 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	TGAImage africanDiffuse;
 	africanDiffuse.read_tga_file("african_head_diffuse.tga");
 	africanDiffuse.flip_vertically();
+
+	TGAImage africanNM;
+	africanNM.read_tga_file("african_head_nm.tga");
+	africanNM.flip_vertically();
 	
 	TGAImage imageTexture(tailleImage, tailleImage, TGAImage::RGB);
 
-	int ligne1, ligne2, ligne3, fTextureA, fTextureB, fTextureC, fVectA, fVectB, fVectC, xLumiere, yLumiere, zLumiere;
+	double ligne1, ligne2, ligne3, fTextureA, fTextureB, fTextureC, fVectA, fVectB, fVectC, xLumiere, yLumiere, zLumiere;
 	double Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz;
 	double maxAbs, minAbs, maxOrd, minOrd;
 	double pix_x, pix_y;
@@ -377,11 +381,12 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	double vnAx, vnAy, vnAz, vnBx, vnBy, vnBz, vnCx, vnCy, vnCz;
 	TGAColor colorPix;
 	TGAColor color;
+	TGAColor ColorNm;
 
 	Matrice lumiere = Matrice(3, 1);
-	lumiere(0, 0) = 0;
-	lumiere(1, 0) = 0;
-	lumiere(2, 0) = 1;
+	lumiere(0, 0) = 1;
+	lumiere(1, 0) = 1;
+	lumiere(2, 0) = 0;
 
 	xLumiere = lumiere(0, 0);
 	yLumiere = lumiere(1, 0);
@@ -514,9 +519,15 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						pix_y = (vtAy*w + vtBy*u + vtCy*v) * africanDiffuse.get_height();
 						colorPix = africanDiffuse.get(pix_x, pix_y);
 
-						double xNormal = vnAx*w + vnBx*u + vnCx*v;
+						ColorNm = africanNM.get(pix_x, pix_y);
+
+						/*double xNormal = vnAx*w + vnBx*u + vnCx*v;
 						double yNormal = vnAy*w + vnBy*u + vnCy*v;
-						double zNormal = vnAz*w + vnBz*u + vnCz*v;
+						double zNormal = vnAz*w + vnBz*u + vnCz*v;*/
+
+						double xNormal = ColorNm.r;
+						double yNormal = ColorNm.g;
+						double zNormal = ColorNm.b;
 
 						double tmp = sqrt(xNormal*xNormal + yNormal*yNormal + zNormal*zNormal);
 						xNormal /= tmp;
@@ -568,7 +579,7 @@ int main(int argc, char** argv)
 	perspective(3, 2) = -1 / c;
 
 	/* Création de la Rotation */
-	double angle = 0 * (PI) / 180;
+	double angle = -25 * (PI) / 180;
 	Matrice rotation = Matrice(4, 4);
 	rotation(0, 0) = cos(angle);
 	rotation(0, 2) = sin(angle);
