@@ -593,15 +593,39 @@ int main(int argc, char** argv)
 	perspective(3, 3) = 1;
 	perspective(3, 2) = -1 / c;
 
-	/* Création de la Rotation */
-	double angle = -25 * (PI) / 180;
+	/* Création de la Rotation autour de l'axe y */
+	double angleY = -25 * (PI) / 180;
+	Matrice rotationY = Matrice(4, 4);
+	rotationY(0, 0) = cos(angleY);
+	rotationY(0, 2) = sin(angleY);
+	rotationY(1, 1) = 1;
+	rotationY(2, 0) = -sin(angleY);
+	rotationY(2, 2) = cos(angleY);
+	rotationY(3, 3) = 1;
+
+	/* Création de la rotation autour de l'axe x */
+	double angleX = 25 *(PI) / 180;
+	Matrice rotationX = Matrice(4, 4);
+	rotationX(0, 0) = 1;
+	rotationX(1, 1) = cos(angleX);
+	rotationX(1, 2) = -sin(angleX);
+	rotationX(2, 1) = sin(angleX);
+	rotationX(2, 2) = cos(angleX);
+	rotationX(3, 3) = 1;
+
+	/* Création de la rotation autour de l'axe z */
+	double angleZ = 0 * (PI) / 180;
+	Matrice rotationZ = Matrice(4, 4);
+	rotationZ(0, 0) = cos(angleZ);
+	rotationZ(0, 1) = -sin(angleZ);
+	rotationZ(1, 0) = sin(angleZ);
+	rotationZ(1, 1) = cos(angleZ);
+	rotationZ(2, 2) = 1;
+	rotationZ(3, 3) = 1;
+
+	/* Creation de la rotation complete */
 	Matrice rotation = Matrice(4, 4);
-	rotation(0, 0) = cos(angle);
-	rotation(0, 2) = sin(angle);
-	rotation(1, 1) = 1;
-	rotation(2, 0) = -sin(angle);
-	rotation(2, 2) = cos(angle);
-	rotation(3, 3) = 1;
+	rotation = rotationX*rotationY*rotationZ;
 
 	/* On dessine l'image */
 	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, vectNormauxVn, vectNormauxF, viewPort, perspective, rotation);
