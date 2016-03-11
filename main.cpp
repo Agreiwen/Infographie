@@ -359,7 +359,7 @@ int minTrois(int a, int b, int c) {
 	return minDeux(minDeux(a, b), c);
 }
 
-void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, vector<vector<double> > &vectNormauxVn, vector<vector<double> > &vectNormauxF, Matrice &viewPort, Matrice &perspective, Matrice &rotation) {
+void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, vector<vector<double> > &vectNormauxVn, vector<vector<double> > &vectNormauxF, Matrice &viewPort, Matrice &perspective, Matrice &rotation, Matrice &sepia) {
 	cout << "Creation image texture... ";
 	TGAImage image(tailleImage, tailleImage, TGAImage::RGB);
 
@@ -400,6 +400,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	Matrice C(4, 1);
 	Matrice res(4, 1);
 	Matrice aux(4, 1);
+	Matrice couleur(4, 1);
 
 	res = viewPort*perspective*rotation;
 
@@ -549,7 +550,15 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						spec = pow(max(zR, 0.), colorSpec.b);
 
 						intensity = max(0.,xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
-						color = TGAColor(min(5+colorPix.r*(intensity+0.6*spec),255.), min(5+colorPix.g*(intensity+0.6*spec),255.), min(5+colorPix.b*(intensity+0.6*spec),255.), min(5+colorPix.a*(intensity+0.6*spec),255.));
+						couleur(0, 0) = min(5 + colorPix.r*(intensity + 0.6*spec), 255.);
+						couleur(1, 0) = min(5 + colorPix.g*(intensity + 0.6*spec), 255.);
+						couleur(2, 0) = min(5 + colorPix.b*(intensity + 0.6*spec), 255.);
+						couleur(3, 0) = min(5 + colorPix.a*(intensity + 0.6*spec), 255.);
+						//cout << couleur << endl;
+						//cout << sepia << endl;
+						couleur = sepia*couleur;
+						//cout << couleur << endl;
+						color = TGAColor(min(couleur(0, 0), 255.), min(couleur(1, 0), 255.), min(couleur(2, 0), 255.), min(couleur(3, 0), 255.));
 						imageTexture.set(Px, Py, color);
 					}
 				}
@@ -635,7 +644,20 @@ int main(int argc, char** argv)
 	Matrice rotation = Matrice(4, 4);
 	rotation = rotationX*rotationY*rotationZ*zoom;
 
+	/* Creation matrice couleur */
+	Matrice sepia = Matrice(4, 4);
+	sepia(0, 0) = .393;
+	sepia(0, 1) = .769;
+	sepia(0, 2) = .189;
+	sepia(1, 0) = .349;
+	sepia(1, 1) = .686;
+	sepia(1, 2) = .168;
+	sepia(2, 0) = .272;
+	sepia(2, 1) = .534;
+	sepia(2, 2) = .131;
+	sepia(3, 3) = 1;
+
 	/* On dessine l'image */
-	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, vectNormauxVn, vectNormauxF, viewPort, perspective, rotation);
+	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, vectNormauxVn, vectNormauxF, viewPort, perspective, rotation, sepia);
 	return 0;
 }
