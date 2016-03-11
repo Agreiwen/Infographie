@@ -580,9 +580,17 @@ int main(int argc, char** argv)
 	viewPort(0, 3) = tailleImageSurDeux;
 	viewPort(1, 1) = tailleImageSurDeux;
 	viewPort(1, 3) = tailleImageSurDeux;
-	viewPort(2, 2) = 500;
-	viewPort(2, 3) = 500;
+	viewPort(2, 2) = tailleImageSurDeux;
+	viewPort(2, 3) = tailleImageSurDeux;
 	viewPort(3, 3) = 1;
+
+	/* Création du zoom */
+	Matrice zoom = Matrice(4, 4);
+	double zoomAction = 0.8;
+	zoom(0, 0) = zoomAction;
+	zoom(1, 1) = zoomAction;
+	zoom(2, 2) = zoomAction;
+	zoom(3, 3) = 1;
 
 	/* Création de la Persective */
 	double c = 10000;
@@ -625,7 +633,7 @@ int main(int argc, char** argv)
 
 	/* Creation de la rotation complete */
 	Matrice rotation = Matrice(4, 4);
-	rotation = rotationX*rotationY*rotationZ;
+	rotation = rotationX*rotationY*rotationZ*zoom;
 
 	/* On dessine l'image */
 	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, vectNormauxVn, vectNormauxF, viewPort, perspective, rotation);
