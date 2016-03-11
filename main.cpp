@@ -15,6 +15,7 @@ using namespace std;
 double zbuffer[1000][1000];
 int tailleImage = 1000;
 int tailleImageSurDeux = tailleImage / 2;
+TGAImage imageTexture(tailleImage, tailleImage, TGAImage::RGB);
 
 vector<vector<double> > lectureSommets(string nomFichier) {
 	cout << "Lecture des sommets... ";
@@ -359,9 +360,16 @@ int minTrois(int a, int b, int c) {
 	return minDeux(minDeux(a, b), c);
 }
 
+void initialisationZBuffer() {
+	for (int i = 0; i<1000; i++) {
+		for (int j = 0; j<1000; j++) {
+			zbuffer[i][j] = std::numeric_limits<int>::min();
+		}
+	}
+}
+
 void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, vector<vector<double> > &vectNormauxVn, vector<vector<double> > &vectNormauxF, Matrice &viewPort, Matrice &perspective, Matrice &rotation, Matrice &sepia) {
 	cout << "Creation image texture... ";
-	TGAImage image(tailleImage, tailleImage, TGAImage::RGB);
 
 	TGAImage africanDiffuse;
 	africanDiffuse.read_tga_file("african_head_diffuse.tga");
@@ -374,8 +382,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	TGAImage africanSpecular;
 	africanSpecular.read_tga_file("african_head_spec.tga");
 	africanSpecular.flip_vertically();
-	
-	TGAImage imageTexture(tailleImage, tailleImage, TGAImage::RGB);
 
 	double ligne1, ligne2, ligne3, fTextureA, fTextureB, fTextureC, fVectA, fVectB, fVectC, xLumiere, yLumiere, zLumiere;
 	double Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz;
@@ -386,14 +392,9 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	double intensity, xNormal, yNormal, zNormal, produitScalaire, xR, yR, zR, spec;
 	TGAColor colorPix, color, colorNm, colorSpec;
 
-	Matrice lumiere = Matrice(3, 1);
-	lumiere(0, 0) = 1;
-	lumiere(1, 0) = 1;
-	lumiere(2, 0) = 0;
-
-	xLumiere = lumiere(0, 0);
-	yLumiere = lumiere(1, 0);
-	zLumiere = lumiere(2, 0);
+	xLumiere = 1;
+	yLumiere = 0;
+	zLumiere = -1;
 
 	Matrice A(4, 1);
 	Matrice B(4, 1);
@@ -409,11 +410,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	yLumiere /= tmp;
 	zLumiere /= tmp;
 
-	for (int i = 0; i<1000; i++) {
-		for (int j = 0; j<1000; j++) {
-			zbuffer[i][j] = std::numeric_limits<int>::min();
-		}
-	}
+	initialisationZBuffer();
 	
 	for (unsigned int i = 0; i < vectTriangles.size(); ++i) {
 		ligne1 = vectTriangles[i][0];
@@ -430,7 +427,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		fTextureA = vectTexturesF[i][0];
 		vtAx = vectTexturesVt[fTextureA - 1][0];
 		vtAy = vectTexturesVt[fTextureA - 1][1];
-		TGAColor colorA = africanDiffuse.get(vtAx, vtAy);
 
 		fVectA = vectNormauxF[i][0];
 		vnAx = vectNormauxVn[fVectA - 1][0];
@@ -451,7 +447,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		fTextureB = vectTexturesF[i][1];
 		vtBx = vectTexturesVt[fTextureB - 1][0];
 		vtBy = vectTexturesVt[fTextureB - 1][1];
-		TGAColor colorB = africanDiffuse.get(vtBx, vtBy);
 
 		fVectB = vectNormauxF[i][1];
 		vnBx = vectNormauxVn[fVectB - 1][0];
@@ -472,7 +467,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		fTextureC = vectTexturesF[i][2];
 		vtCx = vectTexturesVt[fTextureC - 1][0];
 		vtCy = vectTexturesVt[fTextureC - 1][1];
-		TGAColor colorC = africanDiffuse.get(vtCx, vtCy);
 
 		fVectC = vectNormauxF[i][2];
 		vnCx = vectNormauxVn[fVectC - 1][0];
@@ -554,10 +548,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						couleur(1, 0) = min(5 + colorPix.g*(intensity + 0.6*spec), 255.);
 						couleur(2, 0) = min(5 + colorPix.b*(intensity + 0.6*spec), 255.);
 						couleur(3, 0) = min(5 + colorPix.a*(intensity + 0.6*spec), 255.);
-						//cout << couleur << endl;
-						//cout << sepia << endl;
 						couleur = sepia*couleur;
-						//cout << couleur << endl;
 						color = TGAColor(min(couleur(0, 0), 255.), min(couleur(1, 0), 255.), min(couleur(2, 0), 255.), min(couleur(3, 0), 255.));
 						imageTexture.set(Px, Py, color);
 					}
@@ -611,7 +602,7 @@ int main(int argc, char** argv)
 	perspective(3, 2) = -1 / c;
 
 	/* Création de la Rotation autour de l'axe y */
-	double angleY = -25 * (PI) / 180;
+	double angleY = 155 * (PI) / 180;
 	Matrice rotationY = Matrice(4, 4);
 	rotationY(0, 0) = cos(angleY);
 	rotationY(0, 2) = sin(angleY);
@@ -621,7 +612,7 @@ int main(int argc, char** argv)
 	rotationY(3, 3) = 1;
 
 	/* Création de la rotation autour de l'axe x */
-	double angleX = 25 *(PI) / 180;
+	double angleX = 0 *(PI) / 180;
 	Matrice rotationX = Matrice(4, 4);
 	rotationX(0, 0) = 1;
 	rotationX(1, 1) = cos(angleX);
@@ -640,10 +631,6 @@ int main(int argc, char** argv)
 	rotationZ(2, 2) = 1;
 	rotationZ(3, 3) = 1;
 
-	/* Creation de la rotation complete */
-	Matrice rotation = Matrice(4, 4);
-	rotation = rotationX*rotationY*rotationZ*zoom;
-
 	/* Creation matrice couleur */
 	Matrice sepia = Matrice(4, 4);
 	sepia(0, 0) = .393;
@@ -657,7 +644,24 @@ int main(int argc, char** argv)
 	sepia(2, 2) = .131;
 	sepia(3, 3) = 1;
 
+	/* Creation matrice nuance de gris */
+	Matrice nuanceGris = Matrice(4, 4);
+	nuanceGris(0, 0) = nuanceGris(0, 1) = nuanceGris(0, 2) = nuanceGris(1, 0) = nuanceGris(1, 1) = nuanceGris(1, 2) = nuanceGris(2, 0) = nuanceGris(2, 1) = nuanceGris(2, 2) = 1 / 3.;
+	nuanceGris(3, 3) = 1;
+
+	/* Creation matrice identite */
+	Matrice identite = Matrice(4, 4);
+	identite(0, 0) = identite(1, 1) = identite(2, 2) = identite(3, 3) = 1;
+
+	/* Creation matrice miroir */
+	Matrice miroir = Matrice(identite);
+	miroir(0, 0) = -1;
+
+	/* Creation de la rotation complete */
+	Matrice rotation = Matrice(4, 4);
+	rotation = rotationX*rotationY*rotationZ*zoom*miroir;
+
 	/* On dessine l'image */
-	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, vectNormauxVn, vectNormauxF, viewPort, perspective, rotation, sepia);
+	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, vectNormauxVn, vectNormauxF, viewPort, perspective, rotation, identite);
 	return 0;
 }
