@@ -56,12 +56,12 @@ string Vecteur::getNom()
 	return this->nom;
 }
 
-void Vecteur::normaliser(Vecteur &V) const
+void Vecteur::normaliser()
 {
-	double tmp = sqrt(V.x*V.x + V.y*V.y + V.z*V.z);
-	V.x /= tmp;
-	V.y /= tmp;
-	V.z /= tmp;
+	double tmp = sqrt(x*x + y*y + z*z);
+	x /= tmp;
+	y /= tmp;
+	z /= tmp;
 }
 
 void Vecteur::afficher() const

@@ -1,6 +1,7 @@
 #include "tgaimage.h"
 #include "Point.h"
-#include "matrice.h"
+#include "Vecteur.h"
+#include "Matrice.h"
 #include <iostream>
 #include <vector>
 #include <limits>
@@ -392,9 +393,8 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	double intensity, xNormal, yNormal, zNormal, produitScalaire, xR, yR, zR, spec;
 	TGAColor colorPix, color, colorNm, colorSpec;
 
-	xLumiere = 1;
-	yLumiere = 0;
-	zLumiere = -1;
+	Vecteur lumiere = Vecteur("lumiere", 1, 0, -1);
+	lumiere.normaliser();
 
 	Matrice A(4, 1);
 	Matrice B(4, 1);
@@ -404,11 +404,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	Matrice couleur(4, 1);
 
 	res = viewPort*perspective*rotation;
-
-	double tmp = sqrt(xLumiere*xLumiere + yLumiere*yLumiere + zLumiere*zLumiere);
-	xLumiere /= tmp;
-	yLumiere /= tmp;
-	zLumiere /= tmp;
 
 	initialisationZBuffer();
 	
@@ -527,13 +522,13 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						yNormal /= tmp;
 						zNormal /= tmp;
 
-						produitScalaire = 2*(xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
+						produitScalaire = 2*(xNormal*lumiere.getX() + yNormal*lumiere.getY() + zNormal*lumiere.getZ());
 						xR = xNormal * produitScalaire;
 						yR = yNormal * produitScalaire;
 						zR = zNormal * produitScalaire;
-						xR -= xLumiere;
-						yR -= yLumiere;
-						zR -= zLumiere;
+						xR -= lumiere.getX();
+						yR -= lumiere.getY();
+						zR -= lumiere.getZ();
 
 						double tmp1 = sqrt(xR*xR + yR*yR + zR*zR);
 						xR /= tmp1;
@@ -543,7 +538,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						colorSpec = africanSpecular.get(pix_x, pix_y);
 						spec = pow(max(zR, 0.), colorSpec.b);
 
-						intensity = max(0.,xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
+						intensity = max(0.,xNormal*lumiere.getX() + yNormal*lumiere.getY() + zNormal*lumiere.getZ());
 						couleur(0, 0) = min(5 + colorPix.r*(intensity + 0.6*spec), 255.);
 						couleur(1, 0) = min(5 + colorPix.g*(intensity + 0.6*spec), 255.);
 						couleur(2, 0) = min(5 + colorPix.b*(intensity + 0.6*spec), 255.);

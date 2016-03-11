@@ -25,7 +25,7 @@ public:
 	string getNom();
 
 	// Autres méthodes
-	void normaliser(Vecteur &V) const;
+	void normaliser();
 	void afficher() const;
 
 private:
