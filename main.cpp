@@ -1,6 +1,7 @@
 #include "tgaimage.h"
 #include "Point.h"
-#include "matrice.h"
+#include "Matrice.h"
+#include "Vecteur.h"
 #include <iostream>
 #include <vector>
 #include <limits>
@@ -383,18 +384,16 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	africanSpecular.read_tga_file("african_head_spec.tga");
 	africanSpecular.flip_vertically();
 
-	double ligne1, ligne2, ligne3, fTextureA, fTextureB, fTextureC, fVectA, fVectB, fVectC, xLumiere, yLumiere, zLumiere;
+	double ligne1, ligne2, ligne3, fTextureA, fTextureB, fTextureC;
 	double Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz;
 	double maxAbs, minAbs, maxOrd, minOrd;
 	double pix_x, pix_y;
 	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy;
-	double vnAx, vnAy, vnAz, vnBx, vnBy, vnBz, vnCx, vnCy, vnCz;
-	double intensity, xNormal, yNormal, zNormal, produitScalaire, xR, yR, zR, spec;
+	double intensity, produitScalaire, spec;
 	TGAColor colorPix, color, colorNm, colorSpec;
 
-	xLumiere = 1;
-	yLumiere = 1;
-	zLumiere = 0;
+	Vecteur lumiere = Vecteur("lumiere", 1, 1, 0);
+	lumiere.normaliser();
 
 	Matrice A(4, 1);
 	Matrice B(4, 1);
@@ -404,11 +403,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	Matrice couleur(4, 1);
 
 	res = viewPort*perspective*rotation;
-
-	double tmp = sqrt(xLumiere*xLumiere + yLumiere*yLumiere + zLumiere*zLumiere);
-	xLumiere /= tmp;
-	yLumiere /= tmp;
-	zLumiere /= tmp;
 
 	initialisationZBuffer();
 
@@ -428,11 +422,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		vtAx = vectTexturesVt[fTextureA - 1][0];
 		vtAy = vectTexturesVt[fTextureA - 1][1];
 
-		fVectA = vectNormauxF[i][0];
-		vnAx = vectNormauxVn[fVectA - 1][0];
-		vnAy = vectNormauxVn[fVectA - 1][1];
-		vnAz = vectNormauxVn[fVectA - 1][2];
-
 		ligne2 = vectTriangles[i][1];
 		B(0, 0) = vectPoints[ligne2 - 1][0];
 		B(1, 0) = vectPoints[ligne2 - 1][1];
@@ -448,11 +437,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		vtBx = vectTexturesVt[fTextureB - 1][0];
 		vtBy = vectTexturesVt[fTextureB - 1][1];
 
-		fVectB = vectNormauxF[i][1];
-		vnBx = vectNormauxVn[fVectB - 1][0];
-		vnBy = vectNormauxVn[fVectB - 1][1];
-		vnBz = vectNormauxVn[fVectB - 1][2];
-
 		ligne3 = vectTriangles[i][2];
 		C(0, 0) = vectPoints[ligne3 - 1][0];
 		C(1, 0) = vectPoints[ligne3 - 1][1];
@@ -467,11 +451,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		fTextureC = vectTexturesF[i][2];
 		vtCx = vectTexturesVt[fTextureC - 1][0];
 		vtCy = vectTexturesVt[fTextureC - 1][1];
-
-		fVectC = vectNormauxF[i][2];
-		vnCx = vectNormauxVn[fVectC - 1][0];
-		vnCy = vectNormauxVn[fVectC - 1][1];
-		vnCz = vectNormauxVn[fVectC - 1][2];
 
 		/* Boite englobante */
 		maxAbs = maxTrois(Ax, Bx, Cx);
@@ -509,32 +488,17 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						colorPix = africanDiffuse.get(pix_x, pix_y);
 
 						colorNm = africanNM.get(pix_x, pix_y);
-						xNormal = colorNm.r;
-						yNormal = colorNm.g;
-						zNormal = colorNm.b;
+						Vecteur normalPix = Vecteur("normalPix", colorNm.r, colorNm.g, colorNm.b);
+						normalPix.normaliser();
 
-						double tmp = sqrt(xNormal*xNormal + yNormal*yNormal + zNormal*zNormal);
-						xNormal /= tmp;
-						yNormal /= tmp;
-						zNormal /= tmp;
-
-						produitScalaire = 2 * (xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
-						xR = xNormal * produitScalaire;
-						yR = yNormal * produitScalaire;
-						zR = zNormal * produitScalaire;
-						xR -= xLumiere;
-						yR -= yLumiere;
-						zR -= zLumiere;
-
-						double tmp1 = sqrt(xR*xR + yR*yR + zR*zR);
-						xR /= tmp1;
-						yR /= tmp1;
-						zR /= tmp1;
+						produitScalaire = 2 * (normalPix.x*lumiere.x + normalPix.y*lumiere.y + normalPix.z*lumiere.z);
+						Vecteur r = Vecteur("r", (normalPix.x * produitScalaire) - lumiere.x, (normalPix.y * produitScalaire) - lumiere.y, (normalPix.z * produitScalaire) - lumiere.z);
+						r.normaliser();
 
 						colorSpec = africanSpecular.get(pix_x, pix_y);
-						spec = pow(max(zR, 0.), colorSpec.b);
+						spec = pow(max(r.z, 0.), colorSpec.b);
 
-						intensity = max(0., xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
+						intensity = max(0., normalPix.x*lumiere.x + normalPix.y*lumiere.y + normalPix.z*lumiere.z);
 						couleur(0, 0) = min(5 + colorPix.r*(intensity + 0.6*spec), 255.);
 						couleur(1, 0) = min(5 + colorPix.g*(intensity + 0.6*spec), 255.);
 						couleur(2, 0) = min(5 + colorPix.b*(intensity + 0.6*spec), 255.);

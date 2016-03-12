@@ -14,21 +14,11 @@ public:
 	Vecteur(string nom);
 	Vecteur(string nom, double x, double y, double z);
 
-	//Accesseurs et mutateurs
-	void setX(double x);
-	void setY(double y);
-	void setZ(double z);
-	void setNom(string nom);
-	double getX() const;
-	double getY() const;
-	double getZ() const;
-	string getNom();
-
 	// Autres méthodes
 	void normaliser();
 	void afficher() const;
 
-private:
+public:
 	double x, y, z;
 	string nom;
 };
