@@ -1,7 +1,6 @@
 #include "tgaimage.h"
 #include "Point.h"
-#include "Vecteur.h"
-#include "Matrice.h"
+#include "matrice.h"
 #include <iostream>
 #include <vector>
 #include <limits>
@@ -393,8 +392,9 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	double intensity, xNormal, yNormal, zNormal, produitScalaire, xR, yR, zR, spec;
 	TGAColor colorPix, color, colorNm, colorSpec;
 
-	Vecteur lumiere = Vecteur("lumiere", 1, 0, -1);
-	lumiere.normaliser();
+	xLumiere = 1;
+	yLumiere = 1;
+	zLumiere = 0;
 
 	Matrice A(4, 1);
 	Matrice B(4, 1);
@@ -405,8 +405,13 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 
 	res = viewPort*perspective*rotation;
 
+	double tmp = sqrt(xLumiere*xLumiere + yLumiere*yLumiere + zLumiere*zLumiere);
+	xLumiere /= tmp;
+	yLumiere /= tmp;
+	zLumiere /= tmp;
+
 	initialisationZBuffer();
-	
+
 	for (unsigned int i = 0; i < vectTriangles.size(); ++i) {
 		ligne1 = vectTriangles[i][0];
 		A(0, 0) = vectPoints[ligne1 - 1][0];
@@ -415,9 +420,9 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		A(3, 0) = 1;
 
 		aux = res*A;
-		Ax = aux(0,0) / aux(3, 0);
-		Ay = aux(1,0) / aux(3, 0);
-		Az = aux(2,0) / aux(3, 0);
+		Ax = aux(0, 0) / aux(3, 0);
+		Ay = aux(1, 0) / aux(3, 0);
+		Az = aux(2, 0) / aux(3, 0);
 
 		fTextureA = vectTexturesF[i][0];
 		vtAx = vectTexturesVt[fTextureA - 1][0];
@@ -468,15 +473,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		vnCy = vectNormauxVn[fVectC - 1][1];
 		vnCz = vectNormauxVn[fVectC - 1][2];
 
-		//cout << "f : " << fTextureA << "|" << fTextureB << "|" << fTextureC << endl;
-		//cout << "vtA : " << vtAx << "|" << vtAy << endl;
-		//cout << "vtB : " << vtBx << "|" << vtBy << endl;
-		//cout << "vtC : " << vtCx << "|" << vtCy << endl;
-		//cout << "fVect : " << fVectA << "|" << fVectB << "|" << fVectC << endl;
-		//cout << "vnA : " << vnAx << "|" << vnAy << "|" << vnAz << endl;
-		//cout << "vnB : " << vnBx << "|" << vnBy << "|" << vnBz << endl;
-		//cout << "vnC : " << vnCx << "|" << vnCy << "|" << vnCz << endl;
-
 		/* Boite englobante */
 		maxAbs = maxTrois(Ax, Bx, Cx);
 		minAbs = minTrois(Ax, Bx, Cx);
@@ -522,13 +518,13 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						yNormal /= tmp;
 						zNormal /= tmp;
 
-						produitScalaire = 2*(xNormal*lumiere.getX() + yNormal*lumiere.getY() + zNormal*lumiere.getZ());
+						produitScalaire = 2 * (xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
 						xR = xNormal * produitScalaire;
 						yR = yNormal * produitScalaire;
 						zR = zNormal * produitScalaire;
-						xR -= lumiere.getX();
-						yR -= lumiere.getY();
-						zR -= lumiere.getZ();
+						xR -= xLumiere;
+						yR -= yLumiere;
+						zR -= zLumiere;
 
 						double tmp1 = sqrt(xR*xR + yR*yR + zR*zR);
 						xR /= tmp1;
@@ -538,7 +534,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						colorSpec = africanSpecular.get(pix_x, pix_y);
 						spec = pow(max(zR, 0.), colorSpec.b);
 
-						intensity = max(0.,xNormal*lumiere.getX() + yNormal*lumiere.getY() + zNormal*lumiere.getZ());
+						intensity = max(0., xNormal*xLumiere + yNormal*yLumiere + zNormal*zLumiere);
 						couleur(0, 0) = min(5 + colorPix.r*(intensity + 0.6*spec), 255.);
 						couleur(1, 0) = min(5 + colorPix.g*(intensity + 0.6*spec), 255.);
 						couleur(2, 0) = min(5 + colorPix.b*(intensity + 0.6*spec), 255.);
@@ -597,7 +593,7 @@ int main(int argc, char** argv)
 	perspective(3, 2) = -1 / c;
 
 	/* Création de la Rotation autour de l'axe y */
-	double angleY = 155 * (PI) / 180;
+	double angleY = -25 * (PI) / 180;
 	Matrice rotationY = Matrice(4, 4);
 	rotationY(0, 0) = cos(angleY);
 	rotationY(0, 2) = sin(angleY);
@@ -607,7 +603,7 @@ int main(int argc, char** argv)
 	rotationY(3, 3) = 1;
 
 	/* Création de la rotation autour de l'axe x */
-	double angleX = 0 *(PI) / 180;
+	double angleX = 25 * (PI) / 180;
 	Matrice rotationX = Matrice(4, 4);
 	rotationX(0, 0) = 1;
 	rotationX(1, 1) = cos(angleX);
@@ -654,7 +650,7 @@ int main(int argc, char** argv)
 
 	/* Creation de la rotation complete */
 	Matrice rotation = Matrice(4, 4);
-	rotation = rotationX*rotationY*rotationZ*zoom*miroir;
+	rotation = rotationX*rotationY*rotationZ*zoom;
 
 	/* On dessine l'image */
 	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, vectNormauxVn, vectNormauxF, viewPort, perspective, rotation, identite);
