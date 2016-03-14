@@ -17,6 +17,7 @@ public:
 	// Autres méthodes
 	void normaliser();
 	void afficher() const;
+	double produitVectoriel(Vecteur v) const;
 
 public:
 	double x, y, z;

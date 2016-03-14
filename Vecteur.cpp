@@ -28,3 +28,8 @@ void Vecteur::afficher() const
 {
 	cout << this->nom << "(" << this->x << "," << this->y << "," << this->z << ")" << endl;
 }
+
+double Vecteur::produitVectoriel(Vecteur v) const
+{
+	return this->x*v.x + this->y*v.y + this->z*v.z;
+}
