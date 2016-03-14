@@ -43,8 +43,6 @@ vector<vector<double> > lectureSommets(string nomFichier) {
 				double partie1, partie2, partie3;
 				ss >> partie1 >> partie2 >> partie3;
 
-				//cout << partie1 << " | " << partie2 << " | " << partie3 << endl;
-
 				vectLigne.push_back(partie1);
 				vectLigne.push_back(partie2);
 				vectLigne.push_back(partie3);
@@ -97,8 +95,6 @@ vector<vector<double> > lectureTriangles(string nomFichier) {
 				double partie2 = atof(texte2.substr(0, posSlashTexte2).c_str());
 				double partie3 = atof(texte3.substr(0, posSlashTexte3).c_str());
 
-				//cout << partie1 << " | " << partie2 << " | " << partie3 << endl;
-
 				vectLigne.push_back(partie1);
 				vectLigne.push_back(partie2);
 				vectLigne.push_back(partie3);
@@ -126,14 +122,10 @@ vector<vector<double> > lectureTexturesF(string nomFichier) {
 		vector<vector<double> > vect;
 		vector<double> vectLigne;
 		int nbTexture = 0;
-		//int test = 0;
 		while (getline(fichier, ligne, '\n'))  // tant que l'on peut mettre la ligne dans "contenu"
 		{
-			/*if (test >= 5)
-			break;*/
 			if (ligne[0] == 'f' && ligne[1] == ' ')
 			{
-				//test++;
 				string aux;
 				for (unsigned int i = 2; i < ligne.size(); ++i)
 				{
@@ -158,8 +150,6 @@ vector<vector<double> > lectureTexturesF(string nomFichier) {
 				double partie1 = atof(texte1.substr(posSlash1Texte1 + 1, posSlash2Texte1 - 1 - posSlash1Texte1).c_str());
 				double partie2 = atof(texte2.substr(posSlash1Texte2 + 1, posSlash2Texte2 - 1 - posSlash1Texte2).c_str());
 				double partie3 = atof(texte3.substr(posSlash1Texte3 + 1, posSlash2Texte3 - 1 - posSlash1Texte3).c_str());
-
-				//cout << partie1 << " | " << partie2 << " | " << partie3 << endl;
 
 				vectLigne.push_back(partie1);
 				vectLigne.push_back(partie2);
@@ -188,14 +178,10 @@ vector<vector<double> > lectureTexturesVt(string nomFichier) {
 		vector<vector<double> > vect;
 		vector<double> vectLigne;
 		int nbTexture = 0;
-		//int test = 0;
 		while (getline(fichier, ligne, '\n'))  // tant que l'on peut mettre la ligne dans "contenu"
 		{
-			/*if (test >= 5)
-			break;*/
 			if (ligne[0] == 'v' && ligne[1] == 't' && ligne[2] == ' ' && ligne[3] == ' ')
 			{
-				//test++;
 				string aux;
 				for (unsigned int i = 4; i < ligne.size(); ++i)
 				{
@@ -206,8 +192,6 @@ vector<vector<double> > lectureTexturesVt(string nomFichier) {
 				ss.str(aux);
 				double partie1, partie2;
 				ss >> partie1 >> partie2;
-
-				//cout << partie1 << " | " << partie2 << endl;
 
 				vectLigne.push_back(partie1);
 				vectLigne.push_back(partie2);
@@ -275,18 +259,52 @@ Matrice boiteEnglobante(Point a, Point b, Point c) {
 	return boite;
 }
 
-void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &viewPort, Matrice &perspective, Matrice &rotation, Matrice &sepia) {
+void recuperationTriangle(vector<vector<double> > &vectPoints, int ligne1, int ligne2, int ligne3, Matrice transformation, Point &a, Point &b, Point &c) {
+	
+	Matrice A(4, 1);
+	Matrice B(4, 1);
+	Matrice C(4, 1);
+	Matrice aux(4, 1);
+
+	A(0, 0) = vectPoints[ligne1 - 1][0];
+	A(1, 0) = vectPoints[ligne1 - 1][1];
+	A(2, 0) = vectPoints[ligne1 - 1][2];
+	A(3, 0) = 1;
+	aux = transformation*A;
+	a = Point(aux(0, 0) / aux(3, 0), aux(1, 0) / aux(3, 0), aux(2, 0) / aux(3, 0));
+
+	B(0, 0) = vectPoints[ligne2 - 1][0];
+	B(1, 0) = vectPoints[ligne2 - 1][1];
+	B(2, 0) = vectPoints[ligne2 - 1][2];
+	B(3, 0) = 1;
+	aux = transformation*B;
+	b = Point(aux(0, 0) / aux(3, 0), aux(1, 0) / aux(3, 0), aux(2, 0) / aux(3, 0));
+
+	C(0, 0) = vectPoints[ligne3 - 1][0];
+	C(1, 0) = vectPoints[ligne3 - 1][1];
+	C(2, 0) = vectPoints[ligne3 - 1][2];
+	C(3, 0) = 1;
+	aux = transformation*C;
+	c = Point(aux(0, 0) / aux(3, 0), aux(1, 0) / aux(3, 0), aux(2, 0) / aux(3, 0));
+}
+
+void recuperationTexture(vector<vector<double> > &vectTexturesVt, double fTextureA, double fTextureB, double fTextureC, double &vtAx, double &vtAy, double &vtBx, double &vtBy, double &vtCx, double &vtCy) {
+	vtAx = vectTexturesVt[fTextureA - 1][0];
+	vtAy = vectTexturesVt[fTextureA - 1][1];
+	vtBx = vectTexturesVt[fTextureB - 1][0];
+	vtBy = vectTexturesVt[fTextureB - 1][1];
+	vtCx = vectTexturesVt[fTextureC - 1][0];
+	vtCy = vectTexturesVt[fTextureC - 1][1];
+}
+
+void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &transformation, Matrice &sepia) {
 	cout << "Creation image texture... ";
 
-	TGAImage africanDiffuse;
+	TGAImage africanDiffuse, africanNM, africanSpecular;
 	africanDiffuse.read_tga_file("african_head_diffuse.tga");
 	africanDiffuse.flip_vertically();
-
-	TGAImage africanNM;
 	africanNM.read_tga_file("african_head_nm.tga");
 	africanNM.flip_vertically();
-
-	TGAImage africanSpecular;
 	africanSpecular.read_tga_file("african_head_spec.tga");
 	africanSpecular.flip_vertically();
 
@@ -297,19 +315,13 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	TGAColor colorPix, color, colorNm, colorSpec;
 	Vecteur normalPix, lumiere, r;
 	Point a, b, c;
-
-	lumiere = Vecteur(1, 1, 0);
-	lumiere.normaliser();
-
-	Matrice A(4, 1);
-	Matrice B(4, 1);
-	Matrice C(4, 1);
-	Matrice res(4, 1);
 	Matrice aux(4, 1);
 	Matrice couleur(4, 1);
 	Matrice boite;
+	Matrice triangle;
 
-	res = viewPort*perspective*rotation;
+	lumiere = Vecteur(1, 1, 0);
+	lumiere.normaliser();
 
 	initialisationZBuffer();
 
@@ -317,50 +329,12 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		ligne1 = vectTriangles[i][0];
 		ligne2 = vectTriangles[i][1];
 		ligne3 = vectTriangles[i][2];
-
-
-		A(0, 0) = vectPoints[ligne1 - 1][0];
-		A(1, 0) = vectPoints[ligne1 - 1][1];
-		A(2, 0) = vectPoints[ligne1 - 1][2];
-		A(3, 0) = 1;
-
-		aux = res*A;
-
-		a = Point(aux(0, 0) / aux(3, 0), aux(1, 0) / aux(3, 0), aux(2, 0) / aux(3, 0));
-
-		fTextureA = vectTexturesF[i][0];
-		vtAx = vectTexturesVt[fTextureA - 1][0];
-		vtAy = vectTexturesVt[fTextureA - 1][1];
-
-		
-		B(0, 0) = vectPoints[ligne2 - 1][0];
-		B(1, 0) = vectPoints[ligne2 - 1][1];
-		B(2, 0) = vectPoints[ligne2 - 1][2];
-		B(3, 0) = 1;
-
-		aux = res*B;
-
-		b = Point(aux(0, 0) / aux(3, 0), aux(1, 0) / aux(3, 0), aux(2, 0) / aux(3, 0));
-
-		fTextureB = vectTexturesF[i][1];
-		vtBx = vectTexturesVt[fTextureB - 1][0];
-		vtBy = vectTexturesVt[fTextureB - 1][1];
-
-		
-		C(0, 0) = vectPoints[ligne3 - 1][0];
-		C(1, 0) = vectPoints[ligne3 - 1][1];
-		C(2, 0) = vectPoints[ligne3 - 1][2];
-		C(3, 0) = 1;
-
-		aux = res*C;
-
-		c = Point(aux(0, 0) / aux(3, 0), aux(1, 0) / aux(3, 0), aux(2, 0) / aux(3, 0));
-
-		fTextureC = vectTexturesF[i][2];
-		vtCx = vectTexturesVt[fTextureC - 1][0];
-		vtCy = vectTexturesVt[fTextureC - 1][1];
-
+		recuperationTriangle(vectPoints, ligne1, ligne2, ligne3, transformation, a, b, c);
 		boite = boiteEnglobante(a, b, c);
+		fTextureA = vectTexturesF[i][0];
+		fTextureB = vectTexturesF[i][1];
+		fTextureC = vectTexturesF[i][2];
+		recuperationTexture(vectTexturesVt, fTextureA, fTextureB, fTextureC, vtAx, vtAy, vtBx, vtBy, vtCx, vtCy);
 
 		double denominateur = (((b.x - a.x)*(c.y - a.y)) - ((c.x - a.x)*(b.y - a.y)));
 		double coeff = 1. / denominateur;
@@ -509,10 +483,10 @@ int main(int argc, char** argv)
 	miroir(0, 0) = -1;
 
 	/* Creation de la rotation complete */
-	Matrice rotation = Matrice(4, 4);
-	rotation = rotationX*rotationY*rotationZ*zoom;
+	Matrice transformation = Matrice(4, 4);
+	transformation = viewPort*perspective*rotationX*rotationY*rotationZ*zoom;
 
 	/* On dessine l'image */
-	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, viewPort, perspective, rotation, identite);
+	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, transformation, identite);
 	return 0;
 }
