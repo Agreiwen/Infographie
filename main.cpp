@@ -225,116 +225,6 @@ vector<vector<double> > lectureTexturesVt(string nomFichier) {
 		cerr << "Impossible d'ouvrir le fichier !" << endl;
 }
 
-vector<vector<double> > lectureVecteursNormauxVn(string nomFichier) {
-	cout << "Lecture des vecteurs normaux... ";
-	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
-
-	if (fichier)  // si l'ouverture a fonctionné
-	{
-		string ligne;
-		vector<vector<double> > vect;
-		vector<double> vectLigne;
-		int nbVectNorm = 0;
-		//int test = 0;
-		while (getline(fichier, ligne, '\n'))  // tant que l'on peut mettre la ligne dans "contenu"
-		{
-			/*if (test >= 5)
-			break;*/
-			if (ligne[0] == 'v' && ligne[1] == 'n' && ligne[2] == ' ' && ligne[3] == ' ')
-			{
-				//test++;
-				string aux;
-				for (unsigned int i = 4; i < ligne.size(); ++i)
-				{
-					aux.push_back(ligne[i]);
-				}
-
-				stringstream ss;
-				ss.str(aux);
-				double partie1, partie2, partie3;
-				ss >> partie1 >> partie2 >> partie3;
-
-				//cout << partie1 << " | " << partie2 << " | " << partie3 << endl;
-
-				vectLigne.push_back(partie1);
-				vectLigne.push_back(partie2);
-				vectLigne.push_back(partie3);
-				vect.push_back(vectLigne);
-
-				nbVectNorm++;
-			}
-			vectLigne.clear();
-		}
-		cout << "(" << nbVectNorm << " vecteurs normaux) ";
-		cout << "Succes" << endl;
-		return vect;
-	}
-	else
-		cerr << "Impossible d'ouvrir le fichier !" << endl;
-}
-
-vector<vector<double> > lectureVecteursF(string nomFichier) {
-	cout << "Lecture des vecteurs f... ";
-	ifstream fichier(nomFichier.c_str(), ios::in);  // on ouvre en lecture
-
-	if (fichier)  // si l'ouverture a fonctionné
-	{
-		string ligne;
-		vector<vector<double> > vect;
-		vector<double> vectLigne;
-		int nbVectF = 0;
-		//int test = 0;
-		while (getline(fichier, ligne, '\n'))  // tant que l'on peut mettre la ligne dans "contenu"
-		{
-			/*if (test >= 5)
-			break;*/
-			if (ligne[0] == 'f' && ligne[1] == ' ')
-			{
-				//test++;
-				string aux;
-				for (unsigned int i = 2; i < ligne.size(); ++i)
-				{
-					aux.push_back(ligne[i]);
-				}
-
-				int posEspace1 = aux.find(' ', 0);
-				int posEspace2 = aux.find(' ', posEspace1 + 1);
-
-				string texte1 = aux.substr(0, posEspace1);
-				string texte2 = aux.substr(posEspace1 + 1, posEspace2 - (posEspace1 + 1));
-				string texte3 = aux.substr(posEspace2 + 1, aux.size() - (posEspace2 + 1));
-
-				int posSlash1Texte1 = texte1.find('/', 0);
-				int posSlash1Texte2 = texte2.find('/', 0);
-				int posSlash1Texte3 = texte3.find('/', 0);
-
-				int posSlash2Texte1 = texte1.find('/', posSlash1Texte1 + 1);
-				int posSlash2Texte2 = texte2.find('/', posSlash1Texte2 + 1);
-				int posSlash2Texte3 = texte3.find('/', posSlash1Texte3 + 1);
-
-				double partie1 = atof(texte1.substr(posSlash2Texte1 + 1, texte1.size() - 1 - posSlash2Texte1).c_str());
-				double partie2 = atof(texte2.substr(posSlash2Texte2 + 1, texte2.size() - 1 - posSlash2Texte2).c_str());
-				double partie3 = atof(texte3.substr(posSlash2Texte3 + 1, texte3.size() - 1 - posSlash2Texte3).c_str());
-
-				//cout << partie1 << " | " << partie2 << " | " << partie3 << endl;
-
-				vectLigne.push_back(partie1);
-				vectLigne.push_back(partie2);
-				vectLigne.push_back(partie3);
-				vect.push_back(vectLigne);
-
-				nbVectF++;
-			}
-			vectLigne.clear();
-		}
-		cout << "(" << nbVectF << " vecteurs f) ";
-		cout << "Succes" << endl;
-		return vect;
-	}
-	else
-		cerr << "Impossible d'ouvrir le fichier !" << endl;
-}
-
 int maxDeux(int a, int b) {
 	if (a >= b) {
 		return a;
@@ -369,7 +259,7 @@ void initialisationZBuffer() {
 	}
 }
 
-void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, vector<vector<double> > &vectNormauxVn, vector<vector<double> > &vectNormauxF, Matrice &viewPort, Matrice &perspective, Matrice &rotation, Matrice &sepia) {
+void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &viewPort, Matrice &perspective, Matrice &rotation, Matrice &sepia) {
 	cout << "Creation image texture... ";
 
 	TGAImage africanDiffuse;
@@ -409,6 +299,10 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 
 	for (unsigned int i = 0; i < vectTriangles.size(); ++i) {
 		ligne1 = vectTriangles[i][0];
+		ligne2 = vectTriangles[i][1];
+		ligne3 = vectTriangles[i][2];
+
+
 		A(0, 0) = vectPoints[ligne1 - 1][0];
 		A(1, 0) = vectPoints[ligne1 - 1][1];
 		A(2, 0) = vectPoints[ligne1 - 1][2];
@@ -422,7 +316,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		vtAx = vectTexturesVt[fTextureA - 1][0];
 		vtAy = vectTexturesVt[fTextureA - 1][1];
 
-		ligne2 = vectTriangles[i][1];
+		
 		B(0, 0) = vectPoints[ligne2 - 1][0];
 		B(1, 0) = vectPoints[ligne2 - 1][1];
 		B(2, 0) = vectPoints[ligne2 - 1][2];
@@ -436,7 +330,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		vtBx = vectTexturesVt[fTextureB - 1][0];
 		vtBy = vectTexturesVt[fTextureB - 1][1];
 
-		ligne3 = vectTriangles[i][2];
+		
 		C(0, 0) = vectPoints[ligne3 - 1][0];
 		C(1, 0) = vectPoints[ligne3 - 1][1];
 		C(2, 0) = vectPoints[ligne3 - 1][2];
@@ -524,8 +418,6 @@ int main(int argc, char** argv)
 	vector<vector<double> > vectTriangles = lectureTriangles("african_head.obj");
 	vector<vector<double> > vectTexturesF = lectureTexturesF("african_head.obj");
 	vector<vector<double> > vectTexturesVt = lectureTexturesVt("african_head.obj");
-	vector<vector<double> > vectNormauxVn = lectureVecteursNormauxVn("african_head.obj");
-	vector<vector<double> > vectNormauxF = lectureVecteursF("african_head.obj");
 
 	/* Creation du Viewport */
 	Matrice viewPort = Matrice(4, 4);
@@ -615,6 +507,6 @@ int main(int argc, char** argv)
 	rotation = rotationX*rotationY*rotationZ*zoom;
 
 	/* On dessine l'image */
-	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, vectNormauxVn, vectNormauxF, viewPort, perspective, rotation, identite);
+	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, viewPort, perspective, rotation, identite);
 	return 0;
 }
