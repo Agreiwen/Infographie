@@ -385,14 +385,15 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	africanSpecular.flip_vertically();
 
 	double ligne1, ligne2, ligne3, fTextureA, fTextureB, fTextureC;
-	double Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz;
 	double maxAbs, minAbs, maxOrd, minOrd;
 	double pix_x, pix_y;
 	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy;
 	double intensity, produitScalaire, spec;
 	TGAColor colorPix, color, colorNm, colorSpec;
+	Vecteur normalPix, lumiere, r;
+	Point a, b, c;
 
-	Vecteur lumiere = Vecteur("lumiere", 1, 1, 0);
+	lumiere = Vecteur(1, 1, 0);
 	lumiere.normaliser();
 
 	Matrice A(4, 1);
@@ -414,9 +415,8 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		A(3, 0) = 1;
 
 		aux = res*A;
-		Ax = aux(0, 0) / aux(3, 0);
-		Ay = aux(1, 0) / aux(3, 0);
-		Az = aux(2, 0) / aux(3, 0);
+
+		a = Point(aux(0, 0) / aux(3, 0), aux(1, 0) / aux(3, 0), aux(2, 0) / aux(3, 0));
 
 		fTextureA = vectTexturesF[i][0];
 		vtAx = vectTexturesVt[fTextureA - 1][0];
@@ -429,9 +429,8 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		B(3, 0) = 1;
 
 		aux = res*B;
-		Bx = aux(0, 0) / aux(3, 0);
-		By = aux(1, 0) / aux(3, 0);
-		Bz = aux(2, 0) / aux(3, 0);
+
+		b = Point(aux(0, 0) / aux(3, 0), aux(1, 0) / aux(3, 0), aux(2, 0) / aux(3, 0));
 
 		fTextureB = vectTexturesF[i][1];
 		vtBx = vectTexturesVt[fTextureB - 1][0];
@@ -444,19 +443,18 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		C(3, 0) = 1;
 
 		aux = res*C;
-		Cx = aux(0, 0) / aux(3, 0);
-		Cy = aux(1, 0) / aux(3, 0);
-		Cz = aux(2, 0) / aux(3, 0);
+
+		c = Point(aux(0, 0) / aux(3, 0), aux(1, 0) / aux(3, 0), aux(2, 0) / aux(3, 0));
 
 		fTextureC = vectTexturesF[i][2];
 		vtCx = vectTexturesVt[fTextureC - 1][0];
 		vtCy = vectTexturesVt[fTextureC - 1][1];
 
 		/* Boite englobante */
-		maxAbs = maxTrois(Ax, Bx, Cx);
-		minAbs = minTrois(Ax, Bx, Cx);
-		maxOrd = maxTrois(Ay, By, Cy);
-		minOrd = minTrois(Ay, By, Cy);
+		maxAbs = maxTrois(a.x, b.x, c.x);
+		minAbs = minTrois(a.x, b.x, c.x);
+		maxOrd = maxTrois(a.y, b.y, c.y);
+		minOrd = minTrois(a.y, b.y, c.y);
 
 		/* Pour ne pas être out of map */
 		minAbs = max(0., minAbs);
@@ -464,20 +462,20 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		maxAbs = min(maxAbs, (double)tailleImage);
 		maxOrd = min(maxOrd, (double)tailleImage);
 
-		double denominateur = (((Bx - Ax)*(Cy - Ay)) - ((Cx - Ax)*(By - Ay)));
+		double denominateur = (((b.x - a.x)*(c.y - a.y)) - ((c.x - a.x)*(b.y - a.y)));
 		double coeff = 1. / denominateur;
 
 		for (int i = minOrd; i <= maxOrd; i++) {
 			for (int j = minAbs; j <= maxAbs; j++) {
 				int Px = j;
 				int Py = i;
-				double u = (coeff*(Cy - Ay))*(Px - Ax) + (coeff*(Ax - Cx))*(Py - Ay);
-				double v = (coeff*(Ay - By))*(Px - Ax) + (coeff*(Bx - Ax))*(Py - Ay);
+				double u = (coeff*(c.y - a.y))*(Px - a.x) + (coeff*(a.x - c.x))*(Py - a.y);
+				double v = (coeff*(a.y - b.y))*(Px - a.x) + (coeff*(b.x - a.x))*(Py - a.y);
 				double w = 1 - u - v;
 				if (u < -1e-5 || v < -1e-5 || w < -1e-5) {
 				}
 				else {
-					double Pz = w*Az + u*Bz + v*Cz;
+					double Pz = w*a.z + u*b.z + v*c.z;
 					if (zbuffer[Px][Py] > Pz) {
 						continue;
 					}
@@ -488,11 +486,11 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						colorPix = africanDiffuse.get(pix_x, pix_y);
 
 						colorNm = africanNM.get(pix_x, pix_y);
-						Vecteur normalPix = Vecteur("normalPix", colorNm.r, colorNm.g, colorNm.b);
+						normalPix = Vecteur(colorNm.r, colorNm.g, colorNm.b);
 						normalPix.normaliser();
 
 						produitScalaire = 2 * (normalPix.x*lumiere.x + normalPix.y*lumiere.y + normalPix.z*lumiere.z);
-						Vecteur r = Vecteur("r", (normalPix.x * produitScalaire) - lumiere.x, (normalPix.y * produitScalaire) - lumiere.y, (normalPix.z * produitScalaire) - lumiere.z);
+						r = Vecteur((normalPix.x * produitScalaire) - lumiere.x, (normalPix.y * produitScalaire) - lumiere.y, (normalPix.z * produitScalaire) - lumiere.z);
 						r.normaliser();
 
 						colorSpec = africanSpecular.get(pix_x, pix_y);

@@ -10,17 +10,9 @@ class Point
 public:
 	// Constructeurs
 	Point();
-	Point(double x, double y);
+	Point(double x, double y, double z);
 	Point(string nom);
-	Point(string nom, double x, double y);
-
-	//Accesseurs et mutateurs
-	void setX(double x);
-	void setY(double y);
-	void setNom(string nom);
-	double getX() const;
-	double getY() const;
-	string getNom();
+	Point(string nom, double x, double y, double z);
 
 	// Autres méthodes
 	double distance(const Point &P) const;
@@ -29,8 +21,8 @@ public:
 	void saisir();
 	void afficher() const;
 
-private:
-	double x, y;
+public:
+	double x, y, z;
 	string nom;
 };
 
