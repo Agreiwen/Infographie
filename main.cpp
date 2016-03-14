@@ -259,6 +259,22 @@ void initialisationZBuffer() {
 	}
 }
 
+Matrice boiteEnglobante(Point a, Point b, Point c) {
+	Matrice boite = Matrice(4, 1);
+	/* Boite englobante minAbs, minOrd, maxAbs, maxOrd */	
+	boite(0, 0) = minTrois(a.x, b.x, c.x);
+	boite(1, 0) = minTrois(a.y, b.y, c.y);
+	boite(2, 0) = maxTrois(a.x, b.x, c.x);
+	boite(3, 0) = maxTrois(a.y, b.y, c.y);
+
+	/* Pour ne pas être out of map */
+	boite(0,0) = max(0., boite(0,0));
+	boite(1,0) = max(0., boite(1,0));
+	boite(2,0) = min(boite(2,0), (double)tailleImage);
+	boite(3,0) = min(boite(3,0), (double)tailleImage);
+	return boite;
+}
+
 void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &viewPort, Matrice &perspective, Matrice &rotation, Matrice &sepia) {
 	cout << "Creation image texture... ";
 
@@ -275,7 +291,6 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	africanSpecular.flip_vertically();
 
 	double ligne1, ligne2, ligne3, fTextureA, fTextureB, fTextureC;
-	double maxAbs, minAbs, maxOrd, minOrd;
 	double pix_x, pix_y;
 	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy;
 	double intensity, produitScalaire, spec;
@@ -292,6 +307,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	Matrice res(4, 1);
 	Matrice aux(4, 1);
 	Matrice couleur(4, 1);
+	Matrice boite;
 
 	res = viewPort*perspective*rotation;
 
@@ -344,23 +360,13 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		vtCx = vectTexturesVt[fTextureC - 1][0];
 		vtCy = vectTexturesVt[fTextureC - 1][1];
 
-		/* Boite englobante */
-		maxAbs = maxTrois(a.x, b.x, c.x);
-		minAbs = minTrois(a.x, b.x, c.x);
-		maxOrd = maxTrois(a.y, b.y, c.y);
-		minOrd = minTrois(a.y, b.y, c.y);
-
-		/* Pour ne pas être out of map */
-		minAbs = max(0., minAbs);
-		minOrd = max(0., minOrd);
-		maxAbs = min(maxAbs, (double)tailleImage);
-		maxOrd = min(maxOrd, (double)tailleImage);
+		boite = boiteEnglobante(a, b, c);
 
 		double denominateur = (((b.x - a.x)*(c.y - a.y)) - ((c.x - a.x)*(b.y - a.y)));
 		double coeff = 1. / denominateur;
 
-		for (int i = minOrd; i <= maxOrd; i++) {
-			for (int j = minAbs; j <= maxAbs; j++) {
+		for (int i = boite(1,0); i <= boite(3,0); i++) {
+			for (int j = boite(0,0); j <= boite(2,0); j++) {
 				int Px = j;
 				int Py = i;
 				double u = (coeff*(c.y - a.y))*(Px - a.x) + (coeff*(a.x - c.x))*(Py - a.y);
