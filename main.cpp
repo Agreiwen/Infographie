@@ -303,6 +303,18 @@ double calculCoefficiant(Point a, Point b, Point c) {
 	return coeff;
 }
 
+bool appartientTriangle(Point &a, Point &b, Point &c, Point &p, double coeff, double &u, double &v, double &w) {
+	u = (coeff*(c.y - a.y))*(p.x - a.x) + (coeff*(a.x - c.x))*(p.y - a.y);
+	v = (coeff*(a.y - b.y))*(p.x - a.x) + (coeff*(b.x - a.x))*(p.y - a.y);
+	w = 1 - u - v;
+	if (u < -1e-5 || v < -1e-5 || w < -1e-5) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
 void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &transformation, Matrice &sepia) {
 	cout << "Creation image texture... ";
 
@@ -317,10 +329,10 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	double ligne1, ligne2, ligne3, fTextureA, fTextureB, fTextureC;
 	double pix_x, pix_y;
 	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy;
-	double coeff, intensity, produitScalaire, spec;
+	double coeff, u, v, w, intensity, produitScalaire, spec;
 	TGAColor colorPix, color, colorNm, colorSpec;
 	Vecteur normalPix, lumiere, r;
-	Point a, b, c;
+	Point a, b, c, p;
 	Matrice aux(4, 1);
 	Matrice couleur(4, 1);
 	Matrice boite;
@@ -346,20 +358,17 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 
 		for (int i = boite(1,0); i <= boite(3,0); i++) {
 			for (int j = boite(0,0); j <= boite(2,0); j++) {
-				int Px = j;
-				int Py = i;
-				double u = (coeff*(c.y - a.y))*(Px - a.x) + (coeff*(a.x - c.x))*(Py - a.y);
-				double v = (coeff*(a.y - b.y))*(Px - a.x) + (coeff*(b.x - a.x))*(Py - a.y);
-				double w = 1 - u - v;
-				if (u < -1e-5 || v < -1e-5 || w < -1e-5) {
+				p.x = j;
+				p.y = i;
+				if (!appartientTriangle(a,b,c,p,coeff,u,v,w)) {
 				}
 				else {
-					double Pz = w*a.z + u*b.z + v*c.z;
-					if (zbuffer[Px][Py] > Pz) {
+					p.z = w*a.z + u*b.z + v*c.z;
+					if (zbuffer[(int)p.x][(int)p.y] > p.z) {
 						continue;
 					}
 					else {
-						zbuffer[Px][Py] = Pz;
+						zbuffer[(int)p.x][(int)p.y] = p.z;
 						pix_x = (vtAx*w + vtBx*u + vtCx*v) * africanDiffuse.get_width();
 						pix_y = (vtAy*w + vtBy*u + vtCy*v) * africanDiffuse.get_height();
 						colorPix = africanDiffuse.get(pix_x, pix_y);
@@ -382,7 +391,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						couleur(3, 0) = min(5 + colorPix.a*(intensity + 0.6*spec), 255.);
 						couleur = sepia*couleur;
 						color = TGAColor(min(couleur(0, 0), 255.), min(couleur(1, 0), 255.), min(couleur(2, 0), 255.), min(couleur(3, 0), 255.));
-						imageTexture.set(Px, Py, color);
+						imageTexture.set(p.x, p.y, color);
 					}
 				}
 			}
