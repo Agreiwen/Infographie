@@ -10,9 +10,9 @@ class Point
 public:
 	// Constructeurs
 	Point();
-	Point(double x, double y, double z);
 	Point(string nom);
 	Point(string nom, double x, double y, double z);
+	Point(double x, double y, double z);
 
 	// Autres méthodes
 	double distance(const Point &P) const;

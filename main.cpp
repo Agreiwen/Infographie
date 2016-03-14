@@ -297,6 +297,12 @@ void recuperationTexture(vector<vector<double> > &vectTexturesVt, double fTextur
 	vtCy = vectTexturesVt[fTextureC - 1][1];
 }
 
+double calculCoefficiant(Point a, Point b, Point c) {
+	double denominateur = (((b.x - a.x)*(c.y - a.y)) - ((c.x - a.x)*(b.y - a.y)));
+	double coeff = 1. / denominateur;
+	return coeff;
+}
+
 void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &transformation, Matrice &sepia) {
 	cout << "Creation image texture... ";
 
@@ -311,7 +317,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 	double ligne1, ligne2, ligne3, fTextureA, fTextureB, fTextureC;
 	double pix_x, pix_y;
 	double vtAx, vtAy, vtBx, vtBy, vtCx, vtCy;
-	double intensity, produitScalaire, spec;
+	double coeff, intensity, produitScalaire, spec;
 	TGAColor colorPix, color, colorNm, colorSpec;
 	Vecteur normalPix, lumiere, r;
 	Point a, b, c;
@@ -336,8 +342,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		fTextureC = vectTexturesF[i][2];
 		recuperationTexture(vectTexturesVt, fTextureA, fTextureB, fTextureC, vtAx, vtAy, vtBx, vtBy, vtCx, vtCy);
 
-		double denominateur = (((b.x - a.x)*(c.y - a.y)) - ((c.x - a.x)*(b.y - a.y)));
-		double coeff = 1. / denominateur;
+		coeff = calculCoefficiant(a, b, c);
 
 		for (int i = boite(1,0); i <= boite(3,0); i++) {
 			for (int j = boite(0,0); j <= boite(2,0); j++) {
