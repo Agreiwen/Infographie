@@ -129,9 +129,9 @@ vector<vector<double> > lectureTexturesF(string nomFichier) {
 				int posSlash2Texte1 = texte1.find('/', posSlash1Texte1 + 1);
 				int posSlash2Texte2 = texte2.find('/', posSlash1Texte2 + 1);
 				int posSlash2Texte3 = texte3.find('/', posSlash1Texte3 + 1);
-				double partie1 = atof(texte1.substr(posSlash1Texte1 + 1, posSlash2Texte1 - 1 - posSlash1Texte1).c_str());
-				double partie2 = atof(texte2.substr(posSlash1Texte2 + 1, posSlash2Texte2 - 1 - posSlash1Texte2).c_str());
-				double partie3 = atof(texte3.substr(posSlash1Texte3 + 1, posSlash2Texte3 - 1 - posSlash1Texte3).c_str());
+				int partie1 = atoi(texte1.substr(posSlash1Texte1 + 1, posSlash2Texte1 - 1 - posSlash1Texte1).c_str());
+				int partie2 = atoi(texte2.substr(posSlash1Texte2 + 1, posSlash2Texte2 - 1 - posSlash1Texte2).c_str());
+				int partie3 = atoi(texte3.substr(posSlash1Texte3 + 1, posSlash2Texte3 - 1 - posSlash1Texte3).c_str());
 				vectLigne.push_back(partie1);
 				vectLigne.push_back(partie2);
 				vectLigne.push_back(partie3);
@@ -185,7 +185,7 @@ vector<vector<double> > lectureTexturesVt(string nomFichier) {
 		cerr << "Impossible d'ouvrir le fichier !" << endl;
 }
 
-int maxDeux(int a, int b) {
+double maxDeux(double a, double b) {
 	if (a >= b) {
 		return a;
 	}
@@ -194,11 +194,11 @@ int maxDeux(int a, int b) {
 	}
 }
 
-int maxTrois(int a, int b, int c) {
+double maxTrois(double a, double b, double c) {
 	return maxDeux(maxDeux(a, b), c);
 }
 
-int minDeux(int a, int b) {
+double minDeux(double a, double b) {
 	if (a <= b) {
 		return a;
 	}
@@ -207,7 +207,7 @@ int minDeux(int a, int b) {
 	}
 }
 
-int minTrois(int a, int b, int c) {
+double minTrois(double a, double b, double c) {
 	return minDeux(minDeux(a, b), c);
 }
 
@@ -258,7 +258,7 @@ void recuperationTriangle(vector<vector<double> > &vectPoints, int ligne1, int l
 	c = Point(aux(0, 0) / aux(3, 0), aux(1, 0) / aux(3, 0), aux(2, 0) / aux(3, 0));
 }
 
-void recuperationTexture(vector<vector<double> > &vectTexturesVt, double fTextureA, double fTextureB, double fTextureC, Matrice &vt) {
+void recuperationTexture(vector<vector<double> > &vectTexturesVt, int fTextureA, int fTextureB, int fTextureC, Matrice &vt) {
 	vt(0, 0) = vectTexturesVt[fTextureA - 1][0];
 	vt(1, 0) = vectTexturesVt[fTextureA - 1][1];
 	vt(0, 1) = vectTexturesVt[fTextureB - 1][0];
@@ -285,18 +285,18 @@ bool appartientTriangle(Point &a, Point &b, Point &c, Point &p, double coeff, do
 	}
 }
 
-void dessinePixel(Matrice &vt, Point &p, Vecteur &lumiere, Matrice &sepia, double &u, double &v, double &w, TGAImage &africanDiffuse, TGAImage &africanNM, TGAImage &africanSpecular) {
+void dessinePixel(Matrice &vt, Point &p, Vecteur &lumiere, Matrice &filtre, double &u, double &v, double &w, TGAImage &africanDiffuse, TGAImage &africanNM, TGAImage &africanSpecular) {
 	zbuffer[(int)p.x][(int)p.y] = p.z;
 	double pix_x = (vt(0, 0)*w + vt(0, 1)*u + vt(0, 2)*v) * africanDiffuse.get_width();
 	double pix_y = (vt(1, 0)*w + vt(1, 1)*u + vt(1, 2)*v) * africanDiffuse.get_height();
-	TGAColor colorPix = africanDiffuse.get(pix_x, pix_y);
-	TGAColor colorNm = africanNM.get(pix_x, pix_y);
+	TGAColor colorPix = africanDiffuse.get((int)pix_x, (int)pix_y);
+	TGAColor colorNm = africanNM.get((int)pix_x, (int)pix_y);
 	Vecteur normalPix = Vecteur(colorNm.r, colorNm.g, colorNm.b);
 	normalPix.normaliser();
 	double produitScalaire = 2 * normalPix.produitVectoriel(lumiere);
 	Vecteur r = Vecteur((normalPix.x * produitScalaire) - lumiere.x, (normalPix.y * produitScalaire) - lumiere.y, (normalPix.z * produitScalaire) - lumiere.z);
 	r.normaliser();
-	TGAColor colorSpec = africanSpecular.get(pix_x, pix_y);
+	TGAColor colorSpec = africanSpecular.get((int)pix_x, (int)pix_y);
 	double spec = pow(max(r.z, 0.), colorSpec.b);
 	double intensity = max(0., normalPix.x*lumiere.x + normalPix.y*lumiere.y + normalPix.z*lumiere.z);
 	Matrice couleur(4, 1);
@@ -304,20 +304,24 @@ void dessinePixel(Matrice &vt, Point &p, Vecteur &lumiere, Matrice &sepia, doubl
 	couleur(1, 0) = min(5 + colorPix.g*(intensity + 0.6*spec), 255.);
 	couleur(2, 0) = min(5 + colorPix.b*(intensity + 0.6*spec), 255.);
 	couleur(3, 0) = min(5 + colorPix.a*(intensity + 0.6*spec), 255.);
-	couleur = sepia*couleur;
+	couleur = filtre*couleur;
 	TGAColor color = TGAColor(min(couleur(0, 0), 255.), min(couleur(1, 0), 255.), min(couleur(2, 0), 255.), min(couleur(3, 0), 255.));
-	imageTexture.set(p.x, p.y, color);
+	imageTexture.set((int)p.x, (int)p.y, color);
 }
 
-void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &transformation, Matrice &sepia) {
-	cout << "Creation image texture... ";
-	TGAImage africanDiffuse, africanNM, africanSpecular;
+void lectureTGAImage(TGAImage &africanDiffuse, TGAImage &africanNM, TGAImage &africanSpecular) {
 	africanDiffuse.read_tga_file("african_head_diffuse.tga");
 	africanDiffuse.flip_vertically();
 	africanNM.read_tga_file("african_head_nm.tga");
 	africanNM.flip_vertically();
 	africanSpecular.read_tga_file("african_head_spec.tga");
 	africanSpecular.flip_vertically();
+}
+
+void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &transformation, Matrice &filtre) {
+	cout << "Creation image texture... ";
+	TGAImage africanDiffuse, africanNM, africanSpecular;
+	lectureTGAImage(africanDiffuse, africanNM, africanSpecular);
 	double coeff, u, v, w, intensity, produitScalaire, spec;
 	Point a, b, c, p;
 	Matrice boite = Matrice(4, 1);
@@ -330,8 +334,8 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		boiteEnglobante(a, b, c, boite);
 		recuperationTexture(vectTexturesVt, vectTexturesF[i][0], vectTexturesF[i][1], vectTexturesF[i][2], vt);
 		coeff = calculCoefficiant(a, b, c);
-		for (int i = boite(1,0); i <= boite(3,0); i++) {
-			for (int j = boite(0,0); j <= boite(2,0); j++) {
+		for (int i = (int)boite(1,0); i <= (int)boite(3,0); i++) {
+			for (int j = (int)boite(0,0); j <= (int)boite(2,0); j++) {
 				p.x = j;
 				p.y = i;
 				if (!appartientTriangle(a,b,c,p,coeff,u,v,w)) {
@@ -342,7 +346,7 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 						continue;
 					}
 					else {
-						dessinePixel(vt,p,lumiere,sepia,u,v,w,africanDiffuse,africanNM,africanSpecular);
+						dessinePixel(vt,p,lumiere,filtre,u,v,w,africanDiffuse,africanNM,africanSpecular);
 					}
 				}
 			}
