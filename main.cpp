@@ -336,8 +336,9 @@ void lectureTGAImage(TGAImage &africanDiffuse, TGAImage &africanNM, TGAImage &af
 	africanSpecular.flip_vertically();
 }
 
-void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &transformation, Matrice &filtre) {
+void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &transformation, Matrice &filtre, string nomImage) {
 	cout << "Creation image texture... ";
+	imageTexture.clear();
 	TGAImage africanDiffuse, africanNM, africanSpecular;
 	lectureTGAImage(africanDiffuse, africanNM, africanSpecular);
 	double coeff, u, v, w, intensity, produitScalaire, spec;
@@ -371,7 +372,39 @@ void faceTexture(vector<vector<double> > &vectPoints, vector<vector<double> > &v
 		}
 	}
 	imageTexture.flip_vertically();
-	imageTexture.write_tga_file("imageTexture.tga");
+	nomImage = nomImage + ".tga";
+	const char *nom = nomImage.c_str();
+	imageTexture.write_tga_file(nom);
+	cout << "Succes" << endl;
+}
+
+void anaglyphe(vector<vector<double> > &vectPoints, vector<vector<double> > &vectTriangles, vector<vector<double> > &vectTexturesF, vector<vector<double> > &vectTexturesVt, Matrice &transformation, Matrice &filtre) {
+	string image1 = "image1";
+	string image2 = "image2";
+	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, transformation, filtre, image1);
+	int ecart = 10;
+	Matrice decalage = Matrice(4, 4);
+	decalage(0, 0) = decalage(1, 1) = decalage(2, 2) = decalage(3, 3) = 1;
+	decalage(0, 3) = ecart;
+	transformation =  decalage * transformation;
+	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, transformation, filtre, image2);
+	TGAImage img1, img2;
+	img1.read_tga_file("image1.tga");
+	img1.flip_vertically();
+	img2.read_tga_file("image2.tga");
+	img2.flip_vertically();
+	TGAImage anaglyphe(1000, 1000, TGAImage::RGB);
+	TGAColor color;
+	for (int i = 0; i < anaglyphe.get_width(); i++) {
+		for (int j = 0; j < anaglyphe.get_height(); j++) {
+			color.r = img1.get(i, j).r;
+			color.g = img2.get(i, j).g;
+			color.b = img2.get(i, j).b;
+			anaglyphe.set(i, j, color);
+		}
+	}
+	anaglyphe.flip_vertically();
+	anaglyphe.write_tga_file("anaglyphe.tga");
 	cout << "Succes" << endl;
 }
 
@@ -385,30 +418,20 @@ int main(int argc, char** argv)
 	vector<vector<double> > vectTexturesVt = lectureTexturesVt("african_head.obj");
 	/* Creation du Viewport */
 	Matrice viewPort = Matrice(4, 4);
-	viewPort(0, 0) = tailleImageSurDeux;
-	viewPort(0, 3) = tailleImageSurDeux;
-	viewPort(1, 1) = tailleImageSurDeux;
-	viewPort(1, 3) = tailleImageSurDeux;
-	viewPort(2, 2) = tailleImageSurDeux;
-	viewPort(2, 3) = tailleImageSurDeux;
+	viewPort(0, 0) = viewPort(0, 3) = viewPort(1, 1) = viewPort(1, 3) = viewPort(2, 2) = viewPort(2, 3) = tailleImageSurDeux;
 	viewPort(3, 3) = 1;
 	/* Création du zoom */
 	Matrice zoom = Matrice(4, 4);
 	double zoomAction = 0.8;
-	zoom(0, 0) = zoomAction;
-	zoom(1, 1) = zoomAction;
-	zoom(2, 2) = zoomAction;
+	zoom(0, 0) = zoom(1, 1) = zoom(2, 2) = zoomAction;
 	zoom(3, 3) = 1;
 	/* Création de la Persective */
 	double c = 10000;
 	Matrice perspective = Matrice(4, 4);
-	perspective(0, 0) = 1;
-	perspective(1, 1) = 1;
-	perspective(2, 2) = 1;
-	perspective(3, 3) = 1;
+	perspective(0, 0) = perspective(1, 1) = perspective(2, 2) = perspective(3, 3) = 1;
 	perspective(3, 2) = -1 / c;
 	/* Création de la Rotation autour de l'axe y */
-	double angleY = -25 * (PI) / 180;
+	double angleY = 0 * (PI) / 180;
 	Matrice rotationY = Matrice(4, 4);
 	rotationY(0, 0) = cos(angleY);
 	rotationY(0, 2) = sin(angleY);
@@ -417,7 +440,7 @@ int main(int argc, char** argv)
 	rotationY(2, 2) = cos(angleY);
 	rotationY(3, 3) = 1;
 	/* Création de la rotation autour de l'axe x */
-	double angleX = 25 * (PI) / 180;
+	double angleX = 0 * (PI) / 180;
 	Matrice rotationX = Matrice(4, 4);
 	rotationX(0, 0) = 1;
 	rotationX(1, 1) = cos(angleX);
@@ -456,10 +479,17 @@ int main(int argc, char** argv)
 	/* Creation matrice miroir */
 	Matrice miroir = Matrice(identite);
 	miroir(0, 0) = -1;
+	/* Creation matrice filtre rouge */
+	Matrice filtreRouge = Matrice(4, 4);
+	filtreRouge(0, 0) = filtreRouge(3, 3) = 1;
+	/* Creation matrice filtre cyan */
+	Matrice filtreCyan = Matrice(4, 4);
+	filtreCyan(1, 1) = filtreCyan(2, 2) = filtreCyan(3, 3) = 1;
 	/* Creation de la rotation complete */
 	Matrice transformation = Matrice(4, 4);
 	transformation = viewPort*perspective*rotationX*rotationY*rotationZ*zoom;
 	/* On dessine l'image */
-	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, transformation, identite);
+	faceTexture(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt, transformation, identite, "imageTexture");
+	anaglyphe(vectPoints, vectTriangles, vectTexturesF, vectTexturesVt,transformation,identite);
 	return 0;
 }
