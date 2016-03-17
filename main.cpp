@@ -285,6 +285,22 @@ bool appartientTriangle(Point &a, Point &b, Point &c, Point &p, double coeff, do
 	}
 }
 
+void negatif(TGAColor &color) {
+	color.r = 255 - color.r;
+	color.g = 255 - color.g;
+	color.b = 255 - color.b;
+}
+
+double tonalite(double i) {
+	return (3 * pow((i / 256), 2) - 2 * pow((i / 256), 3)) * 256;
+}
+
+void contraste(TGAColor &color) {
+	color.r = tonalite(color.r);
+	color.g = tonalite(color.g);
+	color.b = tonalite(color.b);
+}
+
 void dessinePixel(Matrice &vt, Point &p, Vecteur &lumiere, Matrice &filtre, double &u, double &v, double &w, TGAImage &africanDiffuse, TGAImage &africanNM, TGAImage &africanSpecular) {
 	zbuffer[(int)p.x][(int)p.y] = p.z;
 	double pix_x = (vt(0, 0)*w + vt(0, 1)*u + vt(0, 2)*v) * africanDiffuse.get_width();
@@ -306,6 +322,8 @@ void dessinePixel(Matrice &vt, Point &p, Vecteur &lumiere, Matrice &filtre, doub
 	couleur(3, 0) = min(5 + colorPix.a*(intensity + 0.6*spec), 255.);
 	couleur = filtre*couleur;
 	TGAColor color = TGAColor(min(couleur(0, 0), 255.), min(couleur(1, 0), 255.), min(couleur(2, 0), 255.), min(couleur(3, 0), 255.));
+	//negatif(color);
+	contraste(color);
 	imageTexture.set((int)p.x, (int)p.y, color);
 }
 
